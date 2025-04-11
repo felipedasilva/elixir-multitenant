@@ -4,7 +4,6 @@ defmodule MainApp.Accounts do
   """
 
   import Ecto.Query, warn: false
-  alias DBConnection.App
   alias MainApp.Repo
 
   alias MainApp.Accounts.{User, UserToken, UserNotifier, Application, ApplicationUser}
