@@ -25,5 +25,25 @@ defmodule MainApp.Repo.Migrations.CreateUsersAuthTables do
 
     create index(:users_tokens, [:user_id])
     create unique_index(:users_tokens, [:context, :token])
+
+    create table(:applications) do
+      add :name, :string, null: false
+      add :tenant, :string, null: false
+
+      timestamps(type: :utc_datetime)
+    end
+
+    create unique_index(:applications, [:tenant])
+
+    create table(:application_users) do
+      add :application_id, references(:applications, on_delete: :delete_all), null: false
+      add :user_id, references(:users, on_delete: :delete_all), null: false
+
+      timestamps(type: :utc_datetime)
+    end
+
+    create unique_index(:application_users, [:application_id, :user_id],
+             name: :unique_application_user
+           )
   end
 end

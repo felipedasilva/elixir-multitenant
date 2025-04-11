@@ -4,7 +4,7 @@ defmodule MainApp.AccountsTest do
   alias MainApp.Accounts
 
   import MainApp.AccountsFixtures
-  alias MainApp.Accounts.{User, UserToken}
+  alias MainApp.Accounts.{User, UserToken, Application, ApplicationUser}
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -373,6 +373,78 @@ defmodule MainApp.AccountsTest do
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
+    end
+  end
+
+  describe "create_application/1" do
+    test "requires name to be set" do
+      attrs = %{}
+
+      {:error, changeset} = Accounts.create_application(attrs)
+
+      assert %{name: ["can't be blank"]} = errors_on(changeset)
+    end
+
+    test "validates name to be set" do
+      attrs = %{name: 123}
+
+      {:error, changeset} = Accounts.create_application(attrs)
+
+      assert %{name: ["is invalid"]} = errors_on(changeset)
+    end
+
+    test "create an application" do
+      attrs = %{name: "app1"}
+
+      {:ok, application} = Accounts.create_application(attrs)
+
+      refute is_nil(application.id)
+      refute is_nil(application.tenant)
+    end
+
+    test "allow duplicate application names" do
+      default_application = generate_default_application_fixture()
+
+      assert "apptest" == default_application.name
+
+      attrs = %{name: "apptest"}
+
+      {:ok, application} = Accounts.create_application(attrs)
+
+      assert "apptest" == default_application.name
+
+      assert default_application.id != application.id
+    end
+  end
+
+  describe "link_user_to_application/2" do
+    test "validates duplicate relation between user and application" do
+      user = user_fixture()
+      application = generate_default_application_fixture()
+
+      {:ok, application_user} =
+        Accounts.link_user_to_application(application, user)
+
+      application_user = application_user |> Repo.preload([:user, :application])
+
+      {:error, changeset} =
+        Accounts.link_user_to_application(application, user)
+
+      refute is_nil(errors_on(changeset))
+    end
+
+    test "link user to application" do
+      user = user_fixture()
+      application = generate_default_application_fixture()
+
+      {:ok, application_user} =
+        Accounts.link_user_to_application(application, user)
+
+      application_user = application_user |> Repo.preload([:user, :application])
+
+      refute is_nil(application_user.id)
+      assert application.id == application_user.application.id
+      assert user.id == application_user.user.id
     end
   end
 end

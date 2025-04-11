@@ -76,4 +76,10 @@ defmodule MainApp.AccountsFixtures do
     MainApp.Repo.insert!(user_token)
     {encoded_token, user_token.token}
   end
+
+  def generate_default_application_fixture() do
+    {:ok, application} = Accounts.create_application(%{name: "apptest"})
+
+    application
+  end
 end

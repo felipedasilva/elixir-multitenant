@@ -4,9 +4,10 @@ defmodule MainApp.Accounts do
   """
 
   import Ecto.Query, warn: false
+  alias DBConnection.App
   alias MainApp.Repo
 
-  alias MainApp.Accounts.{User, UserToken, UserNotifier}
+  alias MainApp.Accounts.{User, UserToken, UserNotifier, Application, ApplicationUser}
 
   ## Database getters
 
@@ -302,5 +303,17 @@ defmodule MainApp.Accounts do
            |> Repo.transaction() do
       {:ok, user, expired_tokens}
     end
+  end
+
+  def create_application(attrs \\ %{}) do
+    %Application{}
+    |> Application.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def link_user_to_application(%Application{} = application, %User{} = user) do
+    %ApplicationUser{}
+    |> ApplicationUser.changeset(%{application_id: application.id, user_id: user.id})
+    |> Repo.insert()
   end
 end
