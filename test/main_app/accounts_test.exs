@@ -4,7 +4,7 @@ defmodule MainApp.AccountsTest do
   alias MainApp.Accounts
 
   import MainApp.AccountsFixtures
-  alias MainApp.Accounts.{User, UserToken, Application, ApplicationUser}
+  alias MainApp.Accounts.{User, UserToken}
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -425,7 +425,7 @@ defmodule MainApp.AccountsTest do
       {:ok, application_user} =
         Accounts.link_user_to_application(application, user)
 
-      application_user = application_user |> Repo.preload([:user, :application])
+      application_user |> Repo.preload([:user, :application])
 
       {:error, changeset} =
         Accounts.link_user_to_application(application, user)
@@ -445,6 +445,14 @@ defmodule MainApp.AccountsTest do
       refute is_nil(application_user.id)
       assert application.id == application_user.application.id
       assert user.id == application_user.user.id
+    end
+  end
+
+  describe "list_applications/0" do
+    test "retrieve all applications" do
+      generate_default_application_fixture()
+
+      assert 1 == Accounts.list_applications() |> length()
     end
   end
 end

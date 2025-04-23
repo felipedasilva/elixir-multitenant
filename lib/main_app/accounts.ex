@@ -4,6 +4,7 @@ defmodule MainApp.Accounts do
   """
 
   import Ecto.Query, warn: false
+  alias MainApp.Tenants
   alias MainApp.Repo
 
   alias MainApp.Accounts.{User, UserToken, UserNotifier, Application, ApplicationUser}
@@ -295,7 +296,10 @@ defmodule MainApp.Accounts do
     with {:ok, %{user: user, tokens_to_expire: expired_tokens}} <-
            Ecto.Multi.new()
            |> Ecto.Multi.update(:user, changeset)
-           |> Ecto.Multi.all(:tokens_to_expire, UserToken.by_user_and_contexts_query(user, :all))
+           |> Ecto.Multi.all(
+             :tokens_to_expire,
+             UserToken.by_user_and_contexts_query(user, :all)
+           )
            |> Ecto.Multi.delete_all(:tokens, fn %{tokens_to_expire: tokens_to_expire} ->
              UserToken.delete_all_query(tokens_to_expire)
            end)
@@ -310,9 +314,24 @@ defmodule MainApp.Accounts do
     |> Repo.insert()
   end
 
+  def create_application_and_run_migrations(attrs \\ %{}) do
+    {:ok, application} =
+      %Application{}
+      |> Application.changeset(attrs)
+      |> Repo.insert()
+
+    Tenants.run_tenant_migrations_to_tenant(application.tenant)
+
+    application
+  end
+
   def link_user_to_application(%Application{} = application, %User{} = user) do
     %ApplicationUser{}
     |> ApplicationUser.changeset(%{application_id: application.id, user_id: user.id})
     |> Repo.insert()
+  end
+
+  def list_applications() do
+    Repo.all(Application)
   end
 end
