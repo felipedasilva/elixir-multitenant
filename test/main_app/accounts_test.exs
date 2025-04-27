@@ -4,7 +4,7 @@ defmodule MainApp.AccountsTest do
   alias MainApp.Accounts
 
   import MainApp.AccountsFixtures
-  alias MainApp.Accounts.{User, UserToken}
+  alias MainApp.Accounts.{User, UserToken, Application}
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -380,7 +380,7 @@ defmodule MainApp.AccountsTest do
     test "requires name to be set" do
       attrs = %{}
 
-      {:error, changeset} = Accounts.create_application(attrs)
+      {:error, changeset} = Accounts.create_application(user_fixture(), attrs)
 
       assert %{name: ["can't be blank"]} = errors_on(changeset)
     end
@@ -388,18 +388,17 @@ defmodule MainApp.AccountsTest do
     test "validates name to be set" do
       attrs = %{name: 123}
 
-      {:error, changeset} = Accounts.create_application(attrs)
+      {:error, changeset} = Accounts.create_application(user_fixture(), attrs)
 
       assert %{name: ["is invalid"]} = errors_on(changeset)
     end
 
     test "create an application" do
-      attrs = %{name: "app1"}
-
-      {:ok, application} = Accounts.create_application(attrs)
+      {:ok, application} = Accounts.create_application(user_fixture(), %{name: "app1"})
 
       refute is_nil(application.id)
       refute is_nil(application.tenant)
+      assert "app1" == application.name
     end
 
     test "allow duplicate application names" do
@@ -409,10 +408,9 @@ defmodule MainApp.AccountsTest do
 
       attrs = %{name: "apptest"}
 
-      {:ok, application} = Accounts.create_application(attrs)
+      {:ok, application} = Accounts.create_application(user_fixture(), attrs)
 
       assert "apptest" == default_application.name
-
       assert default_application.id != application.id
     end
   end
@@ -423,12 +421,12 @@ defmodule MainApp.AccountsTest do
       application = generate_default_application_fixture()
 
       {:ok, application_user} =
-        Accounts.link_user_to_application(application, user)
+        Accounts.link_user_to_application(user, application)
 
       application_user |> Repo.preload([:user, :application])
 
       {:error, changeset} =
-        Accounts.link_user_to_application(application, user)
+        Accounts.link_user_to_application(user, application)
 
       refute is_nil(errors_on(changeset))
     end
@@ -438,7 +436,7 @@ defmodule MainApp.AccountsTest do
       application = generate_default_application_fixture()
 
       {:ok, application_user} =
-        Accounts.link_user_to_application(application, user)
+        Accounts.link_user_to_application(user, application)
 
       application_user = application_user |> Repo.preload([:user, :application])
 
@@ -448,11 +446,87 @@ defmodule MainApp.AccountsTest do
     end
   end
 
-  describe "list_applications/0" do
-    test "retrieve all applications" do
-      generate_default_application_fixture()
+  describe "list_applications/1" do
+    test "retrieve all applications linked to the user" do
+      Accounts.create_application(user_fixture(), %{name: "notvalid"})
 
-      assert 1 == Accounts.list_applications() |> length()
+      user = user_fixture(%{email: "test@gmail.com"})
+      application = generate_default_application_fixture()
+      Accounts.link_user_to_application(user, application)
+
+      applications = Accounts.list_applications(user)
+
+      assert 1 == applications |> length()
+      assert application == applications |> List.first()
+    end
+  end
+
+  describe "get_application!/2" do
+    test "should not return applications that are not linked to the user" do
+      application_notvalid = generate_default_application_fixture()
+      user = user_fixture(%{email: "test@gmail.com"})
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Accounts.get_application!(user, application_notvalid.id)
+      end
+    end
+
+    test "retrieve the correct application" do
+      Accounts.create_application(user_fixture(), %{name: "notvalid"})
+
+      user = user_fixture(%{email: "test@gmail.com"})
+      application_default = application = generate_default_application_fixture()
+      Accounts.link_user_to_application(user, application)
+
+      application = Accounts.get_application!(user, application_default.id)
+      refute is_nil(application)
+      assert application_default.id == application.id
+    end
+  end
+
+  describe "update_application/2" do
+    test "should not be able to change applications that are not linked to the user" do
+      application_notvalid = generate_default_application_fixture()
+      user = user_fixture(%{email: "test@gmail.com"})
+
+      {:error, error} =
+        Accounts.update_application(user, application_notvalid, %{name: "apptest2"})
+
+      assert "User not linked to the application" == error
+    end
+
+    test "should be able to change applications that are linked to the user" do
+      user = user_fixture(%{email: "test@gmail.com"})
+      application_default = application = generate_default_application_fixture()
+      Accounts.link_user_to_application(user, application)
+
+      {:ok, application_updated} =
+        Accounts.update_application(user, application_default, %{name: "test2"})
+
+      assert application_default.id == application_updated.id
+      assert "test2" == application_updated.name
+    end
+  end
+
+  describe "delete_application/2" do
+    test "should not be able to delete applications that are not linked to the user" do
+      application_notvalid = generate_default_application_fixture()
+      user = user_fixture(%{email: "test@gmail.com"})
+
+      {:error, error} = Accounts.delete_application(user, application_notvalid)
+
+      assert "User not linked to the application" == error
+    end
+
+    test "should be able to delete applications that are linked to the user" do
+      user = user_fixture(%{email: "test@gmail.com"})
+      application_default = application = generate_default_application_fixture()
+      Accounts.link_user_to_application(user, application)
+
+      {:ok, application_deleted} = Accounts.delete_application(user, application_default)
+
+      assert application_default.id == application_deleted.id
+      assert is_nil(Repo.get(Application, application_deleted.id))
     end
   end
 end

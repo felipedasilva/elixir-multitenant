@@ -308,10 +308,26 @@ defmodule MainApp.Accounts do
     end
   end
 
-  def create_application(attrs \\ %{}) do
-    %Application{}
-    |> Application.changeset(attrs)
-    |> Repo.insert()
+  def create_application(%User{} = user, attrs \\ %{}) do
+    changeset =
+      %Application{}
+      |> Application.changeset(attrs)
+
+    case changeset do
+      %Ecto.Changeset{valid?: false} ->
+        {:error, changeset}
+
+      _ ->
+        with {:ok, %{application: application, application_user: _}} <-
+               Ecto.Multi.new()
+               |> Ecto.Multi.insert(:application, changeset)
+               |> Ecto.Multi.insert(:application_user, fn %{application: application} ->
+                 create_user_application(user, application)
+               end)
+               |> Repo.transaction() do
+          {:ok, application}
+        end
+    end
   end
 
   def create_application_and_run_migrations(attrs \\ %{}) do
@@ -325,13 +341,74 @@ defmodule MainApp.Accounts do
     application
   end
 
-  def link_user_to_application(%Application{} = application, %User{} = user) do
-    %ApplicationUser{}
-    |> ApplicationUser.changeset(%{application_id: application.id, user_id: user.id})
+  def link_user_to_application(%User{} = user, %Application{} = application) do
+    create_user_application(user, application)
     |> Repo.insert()
   end
 
-  def list_applications() do
-    Repo.all(Application)
+  defp create_user_application(%User{} = user, %Application{} = application) do
+    %ApplicationUser{}
+    |> ApplicationUser.changeset(%{application_id: application.id, user_id: user.id})
+  end
+
+  def list_applications(%User{} = user) do
+    from(a in Application,
+      join: au in "application_users",
+      on: au.application_id == a.id,
+      where: au.user_id == ^user.id
+    )
+    |> Repo.all()
+  end
+
+  def get_application!(%User{} = user, application_id) do
+    from(a in Application,
+      join: au in "application_users",
+      on: au.application_id == a.id,
+      where: au.user_id == ^user.id and a.id == ^application_id
+    )
+    |> Repo.one!()
+  end
+
+  def change_application(%Application{} = application, attrs \\ %{}) do
+    Application.changeset(application, attrs)
+  end
+
+  def update_application(%User{} = user, %Application{} = application, attrs \\ %{}) do
+    is_user_linked_to_application(user, application)
+    |> case do
+      {:ok, _} ->
+        application |> change_application(attrs) |> Repo.update()
+
+      {:error, e} ->
+        {:error, e}
+    end
+  end
+
+  def delete_application(%User{} = user, %Application{} = application) do
+    is_user_linked_to_application(user, application)
+    |> case do
+      {:ok, _} ->
+        Repo.delete(application)
+
+      {:error, e} ->
+        {:error, e}
+    end
+  end
+
+  defp is_user_linked_to_application(%User{} = user, %Application{} = application) do
+    from(au in ApplicationUser,
+      where: au.user_id == ^user.id and au.application_id == ^application.id
+    )
+    |> Repo.one()
+    |> case do
+      application_user when not is_nil(application_user) ->
+        {:ok, application_user}
+
+      nil ->
+        {:error, "User not linked to the application"}
+
+      _ ->
+        {:error, "Unknown error"}
+    end
   end
 end

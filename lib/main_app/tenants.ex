@@ -12,7 +12,7 @@ defmodule MainApp.Tenants do
   def run_tenant_migration_applications() do
     Logger.info("Run tenant migrations for all applications")
 
-    applications = MainApp.Accounts.list_applications()
+    applications = Repo.all(MainApp.Accounts.Application)
 
     tenants =
       applications

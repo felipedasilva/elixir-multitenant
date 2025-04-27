@@ -78,7 +78,13 @@ defmodule MainApp.AccountsFixtures do
   end
 
   def generate_default_application_fixture() do
-    {:ok, application} = Accounts.create_application(%{name: "apptest"})
+    user = user_fixture(%{email: "admin@gmail"})
+
+    generate_default_application_fixture(user)
+  end
+
+  def generate_default_application_fixture(user) do
+    {:ok, application} = Accounts.create_application(user, %{name: "apptest"})
 
     application
   end

@@ -54,6 +54,11 @@ defmodule MainAppWeb.Router do
       on_mount: [{MainAppWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+
+      live "/applications", ApplicationLive.Index, :index
+      live "/applications/new", ApplicationLive.Form, :new
+      live "/applications/:id", ApplicationLive.Show, :show
+      live "/applications/:id/edit", ApplicationLive.Form, :edit
     end
 
     post "/users/update-password", UserSessionController, :update_password
