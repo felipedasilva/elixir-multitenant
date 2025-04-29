@@ -2,6 +2,8 @@ defmodule MainApp.Accounts.Application do
   @moduledoc """
   Define the application to work with, an account can have many applications.
   """
+  @derive {Jason.Encoder, only: [:id, :name, :tenant]}
+
   use Ecto.Schema
 
   import Ecto.Changeset

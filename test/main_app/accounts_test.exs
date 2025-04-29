@@ -1,5 +1,5 @@
 defmodule MainApp.AccountsTest do
-  use MainApp.DataCase
+  use MainApp.DataCase, async: true
 
   alias MainApp.Accounts
 
@@ -399,6 +399,16 @@ defmodule MainApp.AccountsTest do
       refute is_nil(application.id)
       refute is_nil(application.tenant)
       assert "app1" == application.name
+
+      assert_enqueued worker: MainApp.Workers.TenantMigrationWorker,
+                      args: %{
+                        "application" => %{
+                          "id" => application.id,
+                          "tenant" => application.tenant,
+                          "name" => application.name
+                        }
+                      },
+                      queue: :migration
     end
 
     test "allow duplicate application names" do

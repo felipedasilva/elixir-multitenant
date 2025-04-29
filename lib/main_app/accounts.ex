@@ -309,24 +309,27 @@ defmodule MainApp.Accounts do
   end
 
   def create_application(%User{} = user, attrs \\ %{}) do
-    changeset =
-      %Application{}
-      |> Application.changeset(attrs)
+    changeset = Application.changeset(%Application{}, attrs)
 
-    case changeset do
-      %Ecto.Changeset{valid?: false} ->
-        {:error, changeset}
+    if not changeset.valid? do
+      {:error, changeset}
+    else
+      create_application_with_user(user, changeset)
+    end
+  end
 
-      _ ->
-        with {:ok, %{application: application, application_user: _}} <-
-               Ecto.Multi.new()
-               |> Ecto.Multi.insert(:application, changeset)
-               |> Ecto.Multi.insert(:application_user, fn %{application: application} ->
-                 create_user_application(user, application)
-               end)
-               |> Repo.transaction() do
-          {:ok, application}
-        end
+  defp create_application_with_user(%User{} = user, changeset) do
+    with {:ok, %{application: application, application_user: _}} <-
+           Ecto.Multi.new()
+           |> Ecto.Multi.insert(:application, changeset)
+           |> Ecto.Multi.insert(:application_user, fn %{application: application} ->
+             create_user_application(user, application)
+           end)
+           |> Ecto.Multi.insert(:oban_job, fn %{application: application} ->
+             MainApp.Workers.TenantMigrationWorker.new(%{"application" => application})
+           end)
+           |> Repo.transaction() do
+      {:ok, application}
     end
   end
 

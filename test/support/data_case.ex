@@ -19,6 +19,7 @@ defmodule MainApp.DataCase do
   using do
     quote do
       alias MainApp.Repo
+      use Oban.Testing, repo: MainApp.Repo
 
       import Ecto
       import Ecto.Changeset
