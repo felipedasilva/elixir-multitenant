@@ -38,4 +38,10 @@ defmodule MainApp.Inventories do
   def delete_product(tenant, %Product{} = product) do
     Repo.delete(product, prefix: tenant)
   end
+
+  @spec list_products(String, map) ::
+          {:ok, {[Product], Flop.Meta.t()}} | {:error, Flop.Meta.t()}
+  def list_products(tenant, params \\ %{}) do
+    Flop.validate_and_run(Product, params, for: Product, query_opts: [prefix: tenant])
+  end
 end

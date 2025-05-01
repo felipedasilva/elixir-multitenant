@@ -112,4 +112,27 @@ defmodule MainApp.InventoriesTest do
       assert is_nil(Inventories.get_product_by_id(default_tenant, product.id))
     end
   end
+
+  describe "list_products/2" do
+    test "does not allow to listing a product from another tenant", %{
+      default_tenant: default_tenant,
+      second_tenant: second_tenant
+    } do
+      create_product(second_tenant)
+
+      {:ok, {products, _}} = Inventories.list_products(default_tenant, %{})
+
+      assert [] == products
+    end
+
+    test "allow to list a product from another tenant", %{
+      default_tenant: default_tenant
+    } do
+      {:ok, product} = create_product(default_tenant)
+
+      {:ok, {products, _}} = Inventories.list_products(default_tenant, %{})
+
+      assert [product] == products
+    end
+  end
 end

@@ -3,6 +3,11 @@ defmodule MainApp.Inventories.Product do
 
   import Ecto.Changeset
 
+  @derive {
+    Flop.Schema,
+    filterable: [:name, :description, :slug], sortable: [:name, :slug]
+  }
+
   schema "products" do
     field :slug, :string
     field :name, :string
