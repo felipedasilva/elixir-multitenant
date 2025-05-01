@@ -35,9 +35,9 @@ defmodule MainApp.Tenants do
     Logger.info("Creating tenant #{tenant} if not exists")
     Repo.query!("CREATE SCHEMA IF NOT EXISTS \"#{tenant}\"")
 
-    path = Application.app_dir(:app, @migrations_folder)
+    path = Application.app_dir(:main_app, @migrations_folder)
     opts = Keyword.put_new([], :prefix, tenant) |> Keyword.put(:all, true)
-    Ecto.Migrator.run(App.Repo, path, :up, opts)
+    Ecto.Migrator.run(MainApp.Repo, path, :up, opts)
 
     Logger.info("Tenant migration completed for the tenant #{tenant}")
   end
