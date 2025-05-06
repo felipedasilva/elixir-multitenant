@@ -7,6 +7,9 @@ defmodule MainAppWeb.ApplicationLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
+      <%= if @current_scope && @current_scope.application do %>
+        <h1>APP1: {@current_scope.application.name}</h1>
+      <% end %>
       <.header>
         Listing Applications
         <:actions>
@@ -36,8 +39,22 @@ defmodule MainAppWeb.ApplicationLive.Index do
           >
             Delete
           </.link>
+          <.link phx-click={JS.push("set-current-application", value: %{id: application.id})}>
+            Set
+          </.link>
         </:action>
       </.table>
+      <.form
+        :let={f}
+        id={"application-set-current-#{@trigger_submit_id}"}
+        for={to_form(%{"id" => @trigger_submit_id}, as: "application")}
+        action={~p"/users/set-application"}
+        phx-submit="set-current-application"
+        phx-trigger-action={@trigger_submit_id != nil}
+        class="w-0 h-0 hidden"
+      >
+        <.input field={f[:id]} value={@trigger_submit_id} type="hidden" required />
+      </.form>
     </Layouts.app>
     """
   end
@@ -46,6 +63,7 @@ defmodule MainAppWeb.ApplicationLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
+     |> assign(:trigger_submit_id, nil)
      |> assign(:page_title, "Listing Applications")
      |> stream(:applications, Accounts.list_applications(socket.assigns.current_scope.user))}
   end
@@ -56,6 +74,15 @@ defmodule MainAppWeb.ApplicationLive.Index do
     {:ok, _} = Accounts.delete_application(socket.assigns.current_scope.user, application)
 
     {:noreply, stream_delete(socket, :applications, application)}
+  end
+
+  @impl true
+  def handle_event(
+        "set-current-application",
+        %{"id" => application_id},
+        socket
+      ) do
+    {:noreply, assign(socket, trigger_submit_id: application_id)}
   end
 
   @impl true

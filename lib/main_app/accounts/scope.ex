@@ -16,9 +16,10 @@ defmodule MainApp.Accounts.Scope do
   growing application requirements.
   """
 
+  alias MainApp.Accounts.Application
   alias MainApp.Accounts.User
 
-  defstruct user: nil
+  defstruct user: nil, application: nil
 
   @doc """
   Creates a scope for the given user.
@@ -30,4 +31,8 @@ defmodule MainApp.Accounts.Scope do
   end
 
   def for_user(nil), do: nil
+
+  def put_application(%__MODULE__{} = scope, %Application{} = application) do
+    %{scope | application: application}
+  end
 end

@@ -87,6 +87,14 @@ defmodule MainAppWeb.ApplicationLiveTest do
 
       refute has_element?(index_live, "#applications-#{application.id}")
     end
+
+    # test "set application as current application", %{conn: conn, application: application} do
+    #   {:ok, index_live, _html} = live(conn, ~p"/applications")
+
+    #   assert index_live
+    #          |> element("#applications-#{application.id} a", "Set")
+    #          |> render_click() =~ "Application #{application.name} selected"
+    # end
   end
 
   describe "Show" do

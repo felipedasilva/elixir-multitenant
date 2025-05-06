@@ -34,6 +34,7 @@ defmodule MainApp.MixProject do
   defp deps do
     [
       {:flop, "~> 0.26.1"},
+      {:flop_phoenix, "~> 0.24.1"},
       {:oban, "~> 2.0"},
       {:igniter, "~> 0.5", only: [:dev]},
       {:bcrypt_elixir, "~> 3.0"},

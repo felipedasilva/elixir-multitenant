@@ -2,6 +2,7 @@ defmodule MainAppWeb.Router do
   use MainAppWeb, :router
 
   import MainAppWeb.UserAuth
+  import MainAppWeb.Application
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -11,6 +12,7 @@ defmodule MainAppWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug :assign_application_to_scope
   end
 
   pipeline :api do
@@ -51,7 +53,10 @@ defmodule MainAppWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{MainAppWeb.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {MainAppWeb.UserAuth, :require_authenticated},
+        {MainAppWeb.Application, :mount_current_scope}
+      ] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
 
@@ -61,7 +66,17 @@ defmodule MainAppWeb.Router do
       live "/applications/:id/edit", ApplicationLive.Form, :edit
     end
 
+    post "/users/set-application", ApplicationSessionController, :set_application
+
     post "/users/update-password", UserSessionController, :update_password
+
+    live_session :require_authenticated_user_and_application,
+      on_mount: [
+        {MainAppWeb.UserAuth, :require_authenticated},
+        {MainAppWeb.Application, :require_application}
+      ] do
+      live "/products", ApplicationLive.Index, :index
+    end
   end
 
   scope "/", MainAppWeb do
