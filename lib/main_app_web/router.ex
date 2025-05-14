@@ -75,7 +75,10 @@ defmodule MainAppWeb.Router do
         {MainAppWeb.UserAuth, :require_authenticated},
         {MainAppWeb.Application, :require_application}
       ] do
-      live "/products", ApplicationLive.Index, :index
+      live "/products", ProductLive.Index, :index
+      live "/products/new", ProductLive.Form, :new
+      live "/products/:id", ProductLive.Show, :show
+      live "/products/:id/edit", ProductLive.Form, :edit
     end
   end
 

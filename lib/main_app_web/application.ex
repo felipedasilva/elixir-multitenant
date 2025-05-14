@@ -47,8 +47,6 @@ defmodule MainAppWeb.Application do
 
     application = conn |> get_session(:application)
 
-    IO.inspect(application, label: "assign_application_to_scope")
-
     if application do
       assign(
         conn,

@@ -32,6 +32,17 @@
       <%= if @current_scope do %>
         <li>
           {@current_scope.user.email}
+          <%= if @current_scope.application do %>
+            [{@current_scope.application.name}]
+          <% end %>
+        </li>
+        <%= if @current_scope.application do %>
+          <li>
+            <.link href={~p"/products"}>Products</.link>
+          </li>
+        <% end %>
+        <li>
+          <.link href={~p"/applications"}>Applications</.link>
         </li>
         <li>
           <.link href={~p"/users/settings"}>Settings</.link>

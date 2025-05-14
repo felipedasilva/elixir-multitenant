@@ -5,7 +5,16 @@ defmodule MainApp.Inventories.Product do
 
   @derive {
     Flop.Schema,
-    filterable: [:name, :description, :slug], sortable: [:name, :slug]
+    filterable: [:name, :description, :slug, :search],
+    sortable: [:name, :slug],
+    adapter_opts: [
+      custom_fields: [
+        search: [
+          filter: {MainApp.Inventories.FlopFilter, :search_products_filter, []},
+          ecto_type: :string
+        ]
+      ]
+    ]
   }
 
   schema "products" do

@@ -3,9 +3,9 @@ defmodule MainApp.Workers.TenantMigrationWorker do
   use Oban.Worker, queue: :migration
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"application" => application}}) do
-    IO.inspect(application, label: "application")
-    Tenants.run_tenant_migrations_to_tenant(application.tenant)
+  def perform(%Oban.Job{args: %{"application" => %{"tenant" => tenant}}}) do
+    IO.inspect(tenant, label: "run migrations to tenant")
+    Tenants.run_tenant_migrations_to_tenant(tenant)
 
     :ok
   end

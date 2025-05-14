@@ -465,4 +465,63 @@ defmodule MainAppWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  # attr :fields, :list, required: true
+  # attr :meta, Flop.Meta, required: true
+  # attr :id, :string, default: nil
+  # attr :on_change, :string, default: "update-filter"
+  # attr :target, :string, default: nil
+
+  # def filter_form(%{meta: meta} = assigns) do
+  #   assigns = assign(assigns, form: Phoenix.Component.to_form(meta), meta: nil)
+
+  #   ~H"""
+  #   <.form for={@form} id={@id} phx-target={@target} phx-change={@on_change} phx-submit={@on_change}>
+  #     <Flop.Phoenix.filter_fields :let={i} form={@form} fields={@fields}>
+  #       <.input field={i.field} label={i.label} type={i.type} phx-debounce={120} {i.rest} />
+  #     </Flop.Phoenix.filter_fields>
+
+  #     <.button>filter</.button>
+  #     <button name="reset">reset</button>
+  #   </.form>
+  #   """
+  # end
+
+  attr :meta, Flop.Meta, required: true
+  attr :path, :any, default: nil
+  attr :on_paginate, JS, default: nil
+  attr :target, :string, default: nil
+
+  attr :aria_label, :string,
+    default: "Pagination",
+    doc: """
+    Aria label for the `<nav>` element. The value should be localized. In
+    languages with latin characters, the first letter should be capitalized.
+    If multiple pagination components are rendered on the same page, each one
+    should have a distinct aria label.
+    """
+
+  def pagination(assigns) do
+    ~H"""
+    <Flop.Phoenix.pagination
+      class="pagination"
+      meta={@meta}
+      path={@path}
+      on_paginate={@on_paginate}
+      target={@target}
+      aria-label={@aria_label}
+      page_link_aria_label_fun={&"#{&1}ページ目へ"}
+    >
+      <:previous attrs={[class: "previous"]}>
+        <i class="fas fa-chevron-left" />
+      </:previous>
+      <:next attrs={[class: "next"]}>
+        <i class="fas fa-chevron-right" />
+      </:next>
+      <:ellipsis>
+        <span class="ellipsis">‥</span>
+      </:ellipsis>
+    </Flop.Phoenix.pagination>
+    """
+  end
 end
