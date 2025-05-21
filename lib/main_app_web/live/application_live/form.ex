@@ -36,7 +36,7 @@ defmodule MainAppWeb.ApplicationLive.Form do
   defp return_to(_), do: "index"
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    application = Accounts.get_application!(socket.assigns.current_scope.user, id)
+    application = Accounts.get_application!(socket.assigns.current_scope, id)
 
     socket
     |> assign(:page_title, "Edit Application")
@@ -77,7 +77,7 @@ defmodule MainAppWeb.ApplicationLive.Form do
 
   defp save_application(socket, :edit, application_params) do
     case Accounts.update_application(
-           socket.assigns.current_scope.user,
+           socket.assigns.current_scope,
            socket.assigns.application,
            application_params
          ) do
@@ -95,7 +95,7 @@ defmodule MainAppWeb.ApplicationLive.Form do
   end
 
   defp save_application(socket, :new, application_params) do
-    case Accounts.create_application(socket.assigns.current_scope.user, application_params) do
+    case Accounts.create_application(socket.assigns.current_scope, application_params) do
       {:ok, application} ->
         {:noreply,
          socket

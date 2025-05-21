@@ -79,13 +79,13 @@ defmodule MainApp.AccountsFixtures do
   end
 
   def generate_default_application_fixture() do
-    user = user_fixture(%{email: "admin@gmail"})
+    scope = user_scope_fixture(user_fixture(%{email: "admin@gmail"}))
 
-    generate_default_application_fixture(user)
+    generate_default_application_fixture(scope)
   end
 
-  def generate_default_application_fixture(user) do
-    {:ok, application} = Accounts.create_application(user, %{name: "apptest"})
+  def generate_default_application_fixture(scope) do
+    {:ok, application} = Accounts.create_application(scope, %{name: "apptest"})
 
     application
   end

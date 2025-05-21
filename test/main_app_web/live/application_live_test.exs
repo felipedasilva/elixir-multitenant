@@ -11,7 +11,7 @@ defmodule MainAppWeb.ApplicationLiveTest do
   setup :register_and_log_in_user
 
   defp create_application(%{scope: scope}) do
-    application = generate_default_application_fixture(scope.user)
+    application = generate_default_application_fixture(scope)
 
     %{application: application}
   end

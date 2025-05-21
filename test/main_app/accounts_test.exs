@@ -380,7 +380,7 @@ defmodule MainApp.AccountsTest do
     test "requires name to be set" do
       attrs = %{}
 
-      {:error, changeset} = Accounts.create_application(user_fixture(), attrs)
+      {:error, changeset} = Accounts.create_application(user_scope_fixture(), attrs)
 
       assert %{name: ["can't be blank"]} = errors_on(changeset)
     end
@@ -388,13 +388,13 @@ defmodule MainApp.AccountsTest do
     test "validates name to be set" do
       attrs = %{name: 123}
 
-      {:error, changeset} = Accounts.create_application(user_fixture(), attrs)
+      {:error, changeset} = Accounts.create_application(user_scope_fixture(), attrs)
 
       assert %{name: ["is invalid"]} = errors_on(changeset)
     end
 
     test "create an application" do
-      {:ok, application} = Accounts.create_application(user_fixture(), %{name: "app1"})
+      {:ok, application} = Accounts.create_application(user_scope_fixture(), %{name: "app1"})
 
       refute is_nil(application.id)
       refute is_nil(application.tenant)
@@ -418,7 +418,7 @@ defmodule MainApp.AccountsTest do
 
       attrs = %{name: "apptest"}
 
-      {:ok, application} = Accounts.create_application(user_fixture(), attrs)
+      {:ok, application} = Accounts.create_application(user_scope_fixture(), attrs)
 
       assert "apptest" == default_application.name
       assert default_application.id != application.id
@@ -458,13 +458,13 @@ defmodule MainApp.AccountsTest do
 
   describe "list_applications/1" do
     test "retrieve all applications linked to the user" do
-      Accounts.create_application(user_fixture(), %{name: "notvalid"})
+      Accounts.create_application(user_scope_fixture(), %{name: "notvalid"})
 
-      user = user_fixture(%{email: "test@gmail.com"})
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
       application = generate_default_application_fixture()
-      Accounts.link_user_to_application(user, application)
+      Accounts.link_user_to_application(scope.user, application)
 
-      applications = Accounts.list_applications(user)
+      applications = Accounts.list_applications(scope)
 
       assert 1 == applications |> length()
       assert application == applications |> List.first()
@@ -472,46 +472,78 @@ defmodule MainApp.AccountsTest do
   end
 
   describe "get_application!/2" do
-    test "should not return applications that are not linked to the user" do
-      application_notvalid = generate_default_application_fixture()
-      user = user_fixture(%{email: "test@gmail.com"})
+    test "should not retrive application" do
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
 
       assert_raise Ecto.NoResultsError, fn ->
-        Accounts.get_application!(user, application_notvalid.id)
+        Accounts.get_application!(scope, 9999)
+      end
+    end
+
+    test "should not return applications that are not linked to the user" do
+      application_notvalid = generate_default_application_fixture()
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Accounts.get_application!(scope, application_notvalid.id)
       end
     end
 
     test "retrieve the correct application" do
-      Accounts.create_application(user_fixture(), %{name: "notvalid"})
+      Accounts.create_application(user_scope_fixture(), %{name: "notvalid"})
 
-      user = user_fixture(%{email: "test@gmail.com"})
-      application_default = application = generate_default_application_fixture()
-      Accounts.link_user_to_application(user, application)
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
 
-      application = Accounts.get_application!(user, application_default.id)
+      default_application = generate_default_application_fixture()
+      Accounts.link_user_to_application(scope.user, default_application)
+
+      application = Accounts.get_application!(scope, default_application.id)
       refute is_nil(application)
-      assert application_default.id == application.id
+      assert default_application.id == application.id
+      assert default_application.name == application.name
+    end
+  end
+
+  describe "get_application_by_id!/1" do
+    test "should not retrive application" do
+      assert_raise Ecto.NoResultsError, fn ->
+        Accounts.get_application_by_id!(9999)
+      end
+    end
+
+    test "retrieve the correct application" do
+      Accounts.create_application(user_scope_fixture(), %{name: "notvalid"})
+
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
+      correct_application = generate_default_application_fixture()
+      Accounts.link_user_to_application(scope.user, correct_application)
+
+      application = Accounts.get_application_by_id!(correct_application.id)
+
+      assert correct_application.id == application.id
+      assert correct_application.name == application.name
+      assert correct_application.name == application.name
     end
   end
 
   describe "update_application/2" do
     test "should not be able to change applications that are not linked to the user" do
       application_notvalid = generate_default_application_fixture()
-      user = user_fixture(%{email: "test@gmail.com"})
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
 
       {:error, error} =
-        Accounts.update_application(user, application_notvalid, %{name: "apptest2"})
+        Accounts.update_application(scope, application_notvalid, %{name: "apptest2"})
 
       assert "User not linked to the application" == error
     end
 
     test "should be able to change applications that are linked to the user" do
-      user = user_fixture(%{email: "test@gmail.com"})
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
       application_default = application = generate_default_application_fixture()
-      Accounts.link_user_to_application(user, application)
+      Accounts.link_user_to_application(scope.user, application)
 
       {:ok, application_updated} =
-        Accounts.update_application(user, application_default, %{name: "test2"})
+        Accounts.update_application(scope, application_default, %{name: "test2"})
 
       assert application_default.id == application_updated.id
       assert "test2" == application_updated.name
@@ -521,19 +553,19 @@ defmodule MainApp.AccountsTest do
   describe "delete_application/2" do
     test "should not be able to delete applications that are not linked to the user" do
       application_notvalid = generate_default_application_fixture()
-      user = user_fixture(%{email: "test@gmail.com"})
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
 
-      {:error, error} = Accounts.delete_application(user, application_notvalid)
+      {:error, error} = Accounts.delete_application(scope, application_notvalid)
 
       assert "User not linked to the application" == error
     end
 
     test "should be able to delete applications that are linked to the user" do
-      user = user_fixture(%{email: "test@gmail.com"})
+      scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
       application_default = application = generate_default_application_fixture()
-      Accounts.link_user_to_application(user, application)
+      Accounts.link_user_to_application(scope.user, application)
 
-      {:ok, application_deleted} = Accounts.delete_application(user, application_default)
+      {:ok, application_deleted} = Accounts.delete_application(scope, application_default)
 
       assert application_default.id == application_deleted.id
       assert is_nil(Repo.get(Application, application_deleted.id))

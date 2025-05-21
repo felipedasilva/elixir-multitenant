@@ -4,6 +4,7 @@ defmodule MainApp.Accounts do
   """
 
   import Ecto.Query, warn: false
+  alias MainApp.Accounts.Scope
   alias MainApp.Tenants
   alias MainApp.Repo
 
@@ -308,17 +309,17 @@ defmodule MainApp.Accounts do
     end
   end
 
-  def create_application(%User{} = user, attrs \\ %{}) do
+  def create_application(%Scope{user: %User{}} = scope, attrs \\ %{}) do
     changeset = Application.changeset(%Application{}, attrs)
 
     if not changeset.valid? do
       {:error, changeset}
     else
-      create_application_with_user(user, changeset)
+      create_application_with_user(scope, changeset)
     end
   end
 
-  defp create_application_with_user(%User{} = user, changeset) do
+  defp create_application_with_user(%Scope{user: %User{} = user}, changeset) do
     with {:ok, %{application: application, application_user: _}} <-
            Ecto.Multi.new()
            |> Ecto.Multi.insert(:application, changeset)
@@ -354,7 +355,7 @@ defmodule MainApp.Accounts do
     |> ApplicationUser.changeset(%{application_id: application.id, user_id: user.id})
   end
 
-  def list_applications(%User{} = user) do
+  def list_applications(%Scope{user: %User{} = user}) do
     from(a in Application,
       join: au in "application_users",
       on: au.application_id == a.id,
@@ -363,7 +364,7 @@ defmodule MainApp.Accounts do
     |> Repo.all()
   end
 
-  def get_application!(%User{} = user, application_id) do
+  def get_application!(%Scope{user: %User{} = user}, application_id) do
     from(a in Application,
       join: au in "application_users",
       on: au.application_id == a.id,
@@ -380,7 +381,7 @@ defmodule MainApp.Accounts do
     Application.changeset(application, attrs)
   end
 
-  def update_application(%User{} = user, %Application{} = application, attrs \\ %{}) do
+  def update_application(%Scope{user: %User{} = user}, %Application{} = application, attrs \\ %{}) do
     is_user_linked_to_application(user, application)
     |> case do
       {:ok, _} ->
@@ -391,7 +392,7 @@ defmodule MainApp.Accounts do
     end
   end
 
-  def delete_application(%User{} = user, %Application{} = application) do
+  def delete_application(%Scope{user: %User{} = user}, %Application{} = application) do
     is_user_linked_to_application(user, application)
     |> case do
       {:ok, _} ->

@@ -65,13 +65,13 @@ defmodule MainAppWeb.ApplicationLive.Index do
      socket
      |> assign(:trigger_submit_id, nil)
      |> assign(:page_title, "Listing Applications")
-     |> stream(:applications, Accounts.list_applications(socket.assigns.current_scope.user))}
+     |> stream(:applications, Accounts.list_applications(socket.assigns.current_scope))}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    application = Accounts.get_application!(socket.assigns.current_scope.user, id)
-    {:ok, _} = Accounts.delete_application(socket.assigns.current_scope.user, application)
+    application = Accounts.get_application!(socket.assigns.current_scope, id)
+    {:ok, _} = Accounts.delete_application(socket.assigns.current_scope, application)
 
     {:noreply, stream_delete(socket, :applications, application)}
   end
@@ -89,7 +89,7 @@ defmodule MainAppWeb.ApplicationLive.Index do
   def handle_info({type, %MainApp.Accounts.Application{}}, socket)
       when type in [:created, :updated, :deleted] do
     {:noreply,
-     stream(socket, :applications, Accounts.list_applications(socket.assigns.current_scope.user),
+     stream(socket, :applications, Accounts.list_applications(socket.assigns.current_scope),
        reset: true
      )}
   end

@@ -33,7 +33,7 @@ defmodule MainAppWeb.ApplicationLive.Show do
     {:ok,
      socket
      |> assign(:page_title, "Show Application")
-     |> assign(:application, Accounts.get_application!(socket.assigns.current_scope.user, id))}
+     |> assign(:application, Accounts.get_application!(socket.assigns.current_scope, id))}
   end
 
   @impl true

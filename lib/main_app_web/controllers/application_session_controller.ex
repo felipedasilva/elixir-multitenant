@@ -6,7 +6,7 @@ defmodule MainAppWeb.ApplicationSessionController do
         conn,
         %{"application" => %{"id" => application_id}} = _
       ) do
-    application = Accounts.get_application!(conn.assigns.current_scope.user, application_id)
+    application = Accounts.get_application!(conn.assigns.current_scope, application_id)
 
     conn
     |> put_flash(:info, "Application #{application.name} selected")
