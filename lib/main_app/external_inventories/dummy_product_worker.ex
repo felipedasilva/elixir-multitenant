@@ -1,4 +1,5 @@
 defmodule MainApp.ExternalInventories.DummyProductWorker do
+  alias MainApp.Accounts.Scope
   alias MainApp.Inventories
   alias MainApp.Accounts
   alias MainApp.Accounts.Application
@@ -16,16 +17,18 @@ defmodule MainApp.ExternalInventories.DummyProductWorker do
   def import_dummy_product(%Application{} = application, dummy_product) do
     case validate_dummy_product_data(dummy_product) do
       :ok ->
-        case Inventories.get_product_by_slug(application.tenant, dummy_product["sku"]) do
+        scope = Scope.put_application(%Scope{}, application)
+
+        case Inventories.get_product_by_slug(scope, dummy_product["sku"]) do
           nil ->
-            Inventories.create_product(application.tenant, %{
+            Inventories.create_product(scope, %{
               "name" => dummy_product["title"],
               "slug" => dummy_product["sku"],
               "description" => dummy_product["description"]
             })
 
           product ->
-            Inventories.update_product(application.tenant, product, %{
+            Inventories.update_product(scope, product, %{
               "name" => dummy_product["title"],
               "slug" => dummy_product["sku"],
               "description" => dummy_product["description"]

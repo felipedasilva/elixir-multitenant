@@ -26,7 +26,7 @@ defmodule MainApp.InventoriesFixtures do
     create_product(tenant)
   end
 
-  def create_product(tenant, attrs \\ %{}) do
-    Inventories.create_product(tenant, Map.merge(@default_product_attrs, attrs))
+  def create_product(scope, attrs \\ %{}) do
+    Inventories.create_product(scope, Map.merge(@default_product_attrs, attrs))
   end
 end

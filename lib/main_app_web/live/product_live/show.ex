@@ -38,7 +38,7 @@ defmodule MainAppWeb.ProductLive.Show do
      |> assign(:page_title, "Show Product")
      |> assign(
        :product,
-       Inventories.get_product!(socket.assigns.current_scope.application.tenant, id)
+       Inventories.get_product!(socket.assigns.current_scope, id)
      )}
   end
 

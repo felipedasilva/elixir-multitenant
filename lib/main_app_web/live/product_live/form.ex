@@ -38,16 +38,14 @@ defmodule MainAppWeb.ProductLive.Form do
   defp return_to(_), do: "index"
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    product = Inventories.get_product!(socket.assigns.current_scope.application.tenant, id)
+    product = Inventories.get_product!(socket.assigns.current_scope, id)
 
     socket
     |> assign(:page_title, "Edit Product")
     |> assign(:product, product)
     |> assign(
       :form,
-      to_form(
-        Inventories.change_product(socket.assigns.current_scope.application.tenant, product)
-      )
+      to_form(Inventories.change_product(socket.assigns.current_scope, product))
     )
   end
 
@@ -59,9 +57,7 @@ defmodule MainAppWeb.ProductLive.Form do
     |> assign(:product, product)
     |> assign(
       :form,
-      to_form(
-        Inventories.change_product(socket.assigns.current_scope.application.tenant, product)
-      )
+      to_form(Inventories.change_product(socket.assigns.current_scope, product))
     )
   end
 
@@ -69,7 +65,7 @@ defmodule MainAppWeb.ProductLive.Form do
   def handle_event("validate", %{"product" => product_params}, socket) do
     changeset =
       Inventories.change_product(
-        socket.assigns.current_scope.application.tenant,
+        socket.assigns.current_scope,
         socket.assigns.product,
         product_params
       )
@@ -83,7 +79,7 @@ defmodule MainAppWeb.ProductLive.Form do
 
   defp save_product(socket, :edit, product_params) do
     case Inventories.update_product(
-           socket.assigns.current_scope.application.tenant,
+           socket.assigns.current_scope,
            socket.assigns.product,
            product_params
          ) do
@@ -102,7 +98,7 @@ defmodule MainAppWeb.ProductLive.Form do
 
   defp save_product(socket, :new, product_params) do
     case Inventories.create_product(
-           socket.assigns.current_scope.application.tenant,
+           socket.assigns.current_scope,
            product_params
          ) do
       {:ok, product} ->

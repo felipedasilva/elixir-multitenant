@@ -1,4 +1,5 @@
 defmodule MainAppWeb.ProductLiveTest do
+  alias MainApp.Accounts.Scope
   use MainAppWeb.ConnCase
 
   import Phoenix.LiveViewTest
@@ -18,8 +19,10 @@ defmodule MainAppWeb.ProductLiveTest do
   defp setup_application_and_product(%{conn: conn}) do
     user = user_fixture()
     application = MainApp.Repo.get_by!(MainApp.Accounts.Application, %{name: "myapp1"})
+    scope = Scope.for_user(user) |> Scope.put_application(application)
+
     MainApp.Accounts.link_user_to_application(user, application)
-    {:ok, product} = create_product(application.tenant)
+    {:ok, product} = create_product(scope)
 
     conn =
       conn

@@ -1,4 +1,5 @@
 defmodule MainApp.InventoriesTest do
+  alias MainApp.Accounts.Scope
   use MainApp.DataCase, async: true
 
   alias MainApp.Inventories
@@ -7,28 +8,31 @@ defmodule MainApp.InventoriesTest do
   import MainApp.InventoriesFixtures
 
   setup do
-    application_default = MainApp.Repo.get_by!(Application, %{name: "myapp1"})
-    application_second = MainApp.Repo.get_by!(Application, %{name: "myapp2"})
+    default_application = MainApp.Repo.get_by!(Application, %{name: "myapp1"})
+    second_application = MainApp.Repo.get_by!(Application, %{name: "myapp2"})
 
-    {:ok, default_tenant: application_default.tenant, second_tenant: application_second.tenant}
+    default_scope = Scope.put_application(%Scope{}, default_application)
+    second_scope = Scope.put_application(%Scope{}, second_application)
+
+    {:ok, default_scope: default_scope, second_scope: second_scope}
   end
 
   describe "create_product/2" do
-    test "requires slug to be set", %{default_tenant: default_tenant} do
-      {:error, changeset} = Inventories.create_product(default_tenant, %{name: "product1"})
+    test "requires slug to be set", %{default_scope: default_scope} do
+      {:error, changeset} = Inventories.create_product(default_scope, %{name: "product1"})
 
       assert %{slug: ["can't be blank"]} == errors_on(changeset)
     end
 
-    test "requires name to be set", %{default_tenant: default_tenant} do
-      {:error, changeset} = Inventories.create_product(default_tenant, %{slug: "slug1"})
+    test "requires name to be set", %{default_scope: default_scope} do
+      {:error, changeset} = Inventories.create_product(default_scope, %{slug: "slug1"})
 
       assert %{name: ["can't be blank"]} == errors_on(changeset)
     end
 
-    test "create product", %{default_tenant: default_tenant} do
+    test "create product", %{default_scope: default_scope} do
       {:ok, product} =
-        Inventories.create_product(default_tenant, %{
+        Inventories.create_product(default_scope, %{
           slug: "slug1",
           name: "product1",
           description: "product description"
@@ -43,22 +47,20 @@ defmodule MainApp.InventoriesTest do
 
   describe "get_product_by_id/2" do
     test "does not return product from another tenant", %{
-      default_tenant: default_tenant,
-      second_tenant: second_tenant
+      default_scope: default_scope,
+      second_scope: second_scope
     } do
-      {:ok, product} = create_product(second_tenant)
+      {:ok, product} = create_product(second_scope)
 
-      product = Inventories.get_product_by_id(default_tenant, product.id)
+      product = Inventories.get_product_by_id(default_scope, product.id)
 
       assert is_nil(product)
     end
 
-    test "return product", %{
-      default_tenant: default_tenant
-    } do
-      {:ok, product} = create_product(default_tenant)
+    test "return product", %{default_scope: default_scope} do
+      {:ok, product} = create_product(default_scope)
 
-      found_product = Inventories.get_product_by_id(default_tenant, product.id)
+      found_product = Inventories.get_product_by_id(default_scope, product.id)
 
       refute is_nil(product)
       assert product == found_product
@@ -67,70 +69,64 @@ defmodule MainApp.InventoriesTest do
 
   describe "update_product/2" do
     test "does not allow updating a product from another tenant", %{
-      default_tenant: default_tenant,
-      second_tenant: second_tenant
+      default_scope: default_scope,
+      second_scope: second_scope
     } do
-      {:ok, product} = create_product(second_tenant)
+      {:ok, product} = create_product(second_scope)
 
       assert_raise Ecto.StaleEntryError, fn ->
-        Inventories.update_product(default_tenant, product, %{
+        Inventories.update_product(default_scope, product, %{
           slug: "test"
         })
       end
     end
 
-    test "allow to update a product", %{
-      default_tenant: default_tenant
-    } do
-      {:ok, product} = create_product(default_tenant)
+    test "allow to update a product", %{default_scope: default_scope} do
+      {:ok, product} = create_product(default_scope)
 
-      Inventories.update_product(default_tenant, product, %{slug: "slugupdated"})
+      Inventories.update_product(default_scope, product, %{slug: "slugupdated"})
 
-      assert "slugupdated" == Inventories.get_product_by_id(default_tenant, product.id).slug
+      assert "slugupdated" == Inventories.get_product_by_id(default_scope, product.id).slug
     end
   end
 
   describe "delete_product/2" do
     test "does not allow deleting a product from another tenant", %{
-      default_tenant: default_tenant,
-      second_tenant: second_tenant
+      default_scope: default_scope,
+      second_scope: second_scope
     } do
-      {:ok, product} = create_product(second_tenant)
+      {:ok, product} = create_product(second_scope)
 
       assert_raise Ecto.StaleEntryError, fn ->
-        Inventories.delete_product(default_tenant, product)
+        Inventories.delete_product(default_scope, product)
       end
     end
 
-    test "allow to delete a product", %{
-      default_tenant: default_tenant
-    } do
-      {:ok, product} = create_product(default_tenant)
+    test "allow to delete a product", %{default_scope: default_scope} do
+      {:ok, product} = create_product(default_scope)
 
-      Inventories.delete_product(default_tenant, product)
+      Inventories.delete_product(default_scope, product)
 
-      assert is_nil(Inventories.get_product_by_id(default_tenant, product.id))
+      assert is_nil(Inventories.get_product_by_id(default_scope, product.id))
     end
   end
 
   describe "list_products/2" do
     test "does not allow to listing a product from another tenant", %{
-      default_tenant: default_tenant,
-      second_tenant: second_tenant
+      default_scope: default_scope,
+      second_scope: second_scope
     } do
-      create_product(second_tenant)
+      create_product(second_scope)
 
-      {:ok, {products, _}} = Inventories.list_products(default_tenant, %{})
+      {:ok, {products, _}} = Inventories.list_products(default_scope, %{})
 
       assert [] == products
     end
 
-    test "allow to list a product from another tenant", %{
-      default_tenant: default_tenant
-    } do
-      {:ok, product} = create_product(default_tenant)
+    test "allow to list a product from another tenant", %{default_scope: default_scope} do
+      {:ok, product} = create_product(default_scope)
 
-      {:ok, {products, _}} = Inventories.list_products(default_tenant, %{})
+      {:ok, {products, _}} = Inventories.list_products(default_scope, %{})
 
       assert [product] == products
     end

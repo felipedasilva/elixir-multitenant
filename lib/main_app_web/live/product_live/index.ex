@@ -72,10 +72,10 @@ defmodule MainAppWeb.ProductLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    product = Inventories.get_product!(socket.assigns.current_scope.application.tenant, id)
+    product = Inventories.get_product!(socket.assigns.current_scope, id)
 
     {:ok, _} =
-      Inventories.delete_product(socket.assigns.current_scope.application.tenant, product)
+      Inventories.delete_product(socket.assigns.current_scope, product)
 
     {:noreply,
      socket
@@ -88,7 +88,7 @@ defmodule MainAppWeb.ProductLive.Index do
     flop = Flop.push_order(socket.assigns.meta.flop, order)
 
     {:ok, {products, meta}} =
-      Inventories.list_products(socket.assigns.current_scope.application.tenant, flop)
+      Inventories.list_products(socket.assigns.current_scope, flop)
 
     {:noreply, socket |> assign(meta: meta) |> stream(:products, products)}
   end
@@ -96,7 +96,7 @@ defmodule MainAppWeb.ProductLive.Index do
   @impl Phoenix.LiveView
   def handle_params(params, _, socket) do
     {:ok, {products, meta}} =
-      Inventories.list_products(socket.assigns.current_scope.application.tenant, params)
+      Inventories.list_products(socket.assigns.current_scope, params)
 
     {:noreply,
      socket
@@ -110,7 +110,7 @@ defmodule MainAppWeb.ProductLive.Index do
       when type in [:created, :updated, :deleted] do
     {:ok, {products, meta}} =
       Inventories.list_products(
-        socket.assigns.current_scope.application.tenant,
+        socket.assigns.current_scope,
         socket.assigns.meta
       )
 
