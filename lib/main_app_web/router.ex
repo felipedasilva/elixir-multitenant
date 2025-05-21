@@ -79,6 +79,11 @@ defmodule MainAppWeb.Router do
       live "/products/new", ProductLive.Form, :new
       live "/products/:id", ProductLive.Show, :show
       live "/products/:id/edit", ProductLive.Form, :edit
+
+      live "/dummy_product_imports", DummyProductImportLive.Index, :index
+      live "/dummy_product_imports/new", DummyProductImportLive.Form, :new
+      live "/dummy_product_imports/:id", DummyProductImportLive.Show, :show
+      live "/dummy_product_imports/:id/edit", DummyProductImportLive.Form, :edit
     end
   end
 

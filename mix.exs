@@ -33,6 +33,8 @@ defmodule MainApp.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ex_json_schema, "~> 0.10.0"},
+      {:httpoison, "~> 2.0"},
       {:flop, "~> 0.26.1"},
       {:flop_phoenix, "~> 0.24.1"},
       {:oban, "~> 2.0"},

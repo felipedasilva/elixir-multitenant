@@ -76,4 +76,17 @@ defmodule MainAppWeb.ConnCase do
   defp maybe_set_token_inserted_at(token, inserted_at) do
     MainApp.AccountsFixtures.override_token_inserted_at(token, inserted_at)
   end
+
+  def register_application(%{conn: conn, user: user, scope: scope}) do
+    application = MainApp.Repo.get_by!(MainApp.Accounts.Application, %{name: "myapp1"})
+    MainApp.Accounts.link_user_to_application(user, application)
+
+    scope = MainApp.Accounts.Scope.put_application(scope, application)
+
+    conn =
+      conn
+      |> Plug.Conn.put_session(:application, application)
+
+    %{conn: conn, application: application, scope: scope}
+  end
 end

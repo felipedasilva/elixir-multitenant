@@ -22,6 +22,10 @@ defmodule MainApp.Inventories do
     Repo.get(Product, id, prefix: tenant)
   end
 
+  def get_product_by_slug(tenant, slug) do
+    Repo.get_by(Product, [slug: slug], prefix: tenant)
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for changing the product.
 

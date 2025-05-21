@@ -38,6 +38,9 @@
         </li>
         <%= if @current_scope.application do %>
           <li>
+            <.link href={~p"/dummy_product_imports"}>Dummy product importrs</.link>
+          </li>
+          <li>
             <.link href={~p"/products"}>Products</.link>
           </li>
         <% end %>

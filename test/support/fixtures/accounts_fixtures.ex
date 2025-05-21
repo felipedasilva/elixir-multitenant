@@ -6,6 +6,7 @@ defmodule MainApp.AccountsFixtures do
 
   import Ecto.Query
 
+  alias MainApp.Accounts.Application
   alias MainApp.Accounts
   alias MainApp.Accounts.Scope
 
@@ -87,5 +88,21 @@ defmodule MainApp.AccountsFixtures do
     {:ok, application} = Accounts.create_application(user, %{name: "apptest"})
 
     application
+  end
+
+  def default_application_scope_fixture(scope) do
+    application_default = MainApp.Repo.get_by!(Application, %{name: "myapp1"})
+
+    Accounts.link_user_to_application(scope.user, application_default)
+
+    Scope.put_application(scope, application_default)
+  end
+
+  def second_application_scope_fixture(scope) do
+    application_second = MainApp.Repo.get_by!(Application, %{name: "myapp2"})
+
+    Accounts.link_user_to_application(scope.user, application_second)
+
+    Scope.put_application(scope, application_second)
   end
 end

@@ -12,10 +12,19 @@ config :flop, repo: MainApp.Repo
 config :main_app, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10, migration: 10],
+  queues: [
+    default: 10,
+    migration: 10,
+    external_dummy_product_importer: 10,
+    external_dummy_product: 10
+  ],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
-    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)}
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)},
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"* * * * *", MainApp.ExternalInventories.DummyProductImporterWorker}
+     ]}
   ],
   repo: MainApp.Repo
 

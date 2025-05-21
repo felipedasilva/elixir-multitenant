@@ -372,6 +372,10 @@ defmodule MainApp.Accounts do
     |> Repo.one!()
   end
 
+  def get_application_by_id!(application_id) do
+    Repo.get!(Application, application_id)
+  end
+
   def change_application(%Application{} = application, attrs \\ %{}) do
     Application.changeset(application, attrs)
   end
