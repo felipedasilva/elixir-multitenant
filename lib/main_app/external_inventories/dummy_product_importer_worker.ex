@@ -8,26 +8,18 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorker do
 
   @impl Oban.Worker
   def perform(_args) do
-    IO.inspect("MainApp.Workers.DummyProductImporterWorker")
-
     applications = Repo.all(Application)
 
     applications
     |> Enum.each(fn application ->
-      IO.inspect(application.tenant, label: "test")
-
       dummy_product_imports = Repo.all(DummyProductImport, prefix: application.tenant)
-
-      IO.inspect(dummy_product_imports, label: "LIST")
 
       dummy_product_imports
       |> Enum.each(fn dummy_product_import ->
-        DummyProductImporter.import_products(
+        DummyProductImporter.import_dummy_products(
           Scope.put_application(%Scope{}, application),
           dummy_product_import
         )
-
-        IO.inspect(dummy_product_import, label: "LISTITEM")
 
         :ok
       end)

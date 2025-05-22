@@ -1,33 +1,36 @@
 defmodule MainApp.ExternalInventories.DummyProductImporter do
+  alias MainApp.Accounts.Scope
   alias MainApp.ExternalInventories.DummyProductWorker
   alias MainApp.ExternalInventories.DummyProductImport
 
-  def import_products(scope, %DummyProductImport{} = dummy_product_import) do
+  def import_dummy_products(scope, %DummyProductImport{} = dummy_product_import) do
     # true = scope.application.id == dummy_product_import.__meta__.prefix
 
     url = dummy_product_import.url
-    {:ok, dummy_products} = fetch_dummy_products(url, scope)
 
-    dummy_products
-    |> Enum.map(fn dummy_product ->
-      DummyProductWorker.new(%{
-        "application" => scope.application,
-        "dummy_product" => dummy_product
-      })
-      |> Oban.insert!()
-    end)
+    fetch_dummy_products(scope, url, 0)
   end
 
-  defp fetch_dummy_products(url, scope, products \\ [], skip \\ 0) do
-    case fetch_page(url, skip) do
-      {:ok, %{"products" => products_from_api, "total" => total, "limit" => limit}} ->
-        new_products = products ++ products_from_api
+  defp import_dummy_product(%Scope{} = scope, dummy_product) do
+    DummyProductWorker.new(%{
+      "application" => scope.application,
+      "dummy_product" => dummy_product
+    })
+    |> Oban.insert!()
+  end
 
-        if length(new_products) >= total do
-          {:ok, new_products}
+  defp fetch_dummy_products(scope, url, skip) do
+    case fetch_page(url, skip) do
+      {:ok, %{"products" => products_from_api, "limit" => limit}} ->
+        Enum.each(products_from_api, fn dummy_product ->
+          import_dummy_product(scope, dummy_product)
+        end)
+
+        if length(products_from_api) == 0 do
+          :ok
         else
           Process.sleep(500)
-          fetch_dummy_products(url, scope, new_products, skip + limit)
+          fetch_dummy_products(scope, url, skip + limit)
         end
 
       {:error, reason} ->
