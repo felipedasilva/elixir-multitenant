@@ -18,14 +18,14 @@ defmodule MainApp.InventoriesTest do
   end
 
   describe "create_product/2" do
-    test "requires slug to be set", %{default_scope: default_scope} do
+    test "requires sku to be set", %{default_scope: default_scope} do
       {:error, changeset} = Inventories.create_product(default_scope, %{name: "product1"})
 
-      assert %{slug: ["can't be blank"]} == errors_on(changeset)
+      assert %{sku: ["can't be blank"]} == errors_on(changeset)
     end
 
     test "requires name to be set", %{default_scope: default_scope} do
-      {:error, changeset} = Inventories.create_product(default_scope, %{slug: "slug1"})
+      {:error, changeset} = Inventories.create_product(default_scope, %{sku: "sku1"})
 
       assert %{name: ["can't be blank"]} == errors_on(changeset)
     end
@@ -33,13 +33,13 @@ defmodule MainApp.InventoriesTest do
     test "create product", %{default_scope: default_scope} do
       {:ok, product} =
         Inventories.create_product(default_scope, %{
-          slug: "slug1",
+          sku: "sku1",
           name: "product1",
           description: "product description"
         })
 
       refute is_nil(product.id)
-      assert "slug1" == product.slug
+      assert "sku1" == product.sku
       assert "product1" == product.name
       assert "product description" == product.description
     end
@@ -76,7 +76,7 @@ defmodule MainApp.InventoriesTest do
 
       assert_raise Ecto.StaleEntryError, fn ->
         Inventories.update_product(default_scope, product, %{
-          slug: "test"
+          sku: "test"
         })
       end
     end
@@ -84,9 +84,9 @@ defmodule MainApp.InventoriesTest do
     test "allow to update a product", %{default_scope: default_scope} do
       {:ok, product} = create_product(default_scope)
 
-      Inventories.update_product(default_scope, product, %{slug: "slugupdated"})
+      Inventories.update_product(default_scope, product, %{sku: "skuupdated"})
 
-      assert "slugupdated" == Inventories.get_product_by_id(default_scope, product.id).slug
+      assert "skuupdated" == Inventories.get_product_by_id(default_scope, product.id).sku
     end
   end
 

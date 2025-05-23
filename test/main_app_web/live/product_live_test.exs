@@ -6,13 +6,21 @@ defmodule MainAppWeb.ProductLiveTest do
   import MainApp.InventoriesFixtures
   import MainApp.AccountsFixtures
 
-  @create_attrs %{name: "some name", description: "some description", slug: "some slug"}
+  @create_attrs %{
+    name: "some name",
+    description: "some description",
+    sku: "some sku",
+    source: "test",
+    external_id: "1"
+  }
   @update_attrs %{
     name: "some updated name",
     description: "some updated description",
-    slug: "some updated slug"
+    sku: "some updated sku",
+    source: "test2",
+    external_id: "2"
   }
-  @invalid_attrs %{name: nil, description: nil, slug: nil}
+  @invalid_attrs %{name: nil, description: nil, sku: nil}
 
   setup :register_and_log_in_user
 
@@ -39,7 +47,7 @@ defmodule MainAppWeb.ProductLiveTest do
       {:ok, _index_live, html} = live(conn, ~p"/products")
 
       assert html =~ "Listing Products"
-      assert html =~ product.slug
+      assert html =~ product.sku
     end
 
     test "saves new product", %{conn: conn} do
@@ -65,7 +73,7 @@ defmodule MainAppWeb.ProductLiveTest do
 
       html = render(index_live)
       assert html =~ "Product created successfully"
-      assert html =~ "some slug"
+      assert html =~ "some sku"
     end
 
     test "updates product in listing", %{conn: conn, product: product} do
@@ -91,7 +99,7 @@ defmodule MainAppWeb.ProductLiveTest do
 
       html = render(index_live)
       assert html =~ "Product updated successfully"
-      assert html =~ "some updated slug"
+      assert html =~ "some updated sku"
     end
 
     test "deletes product in listing", %{conn: conn, product: product} do
@@ -109,7 +117,7 @@ defmodule MainAppWeb.ProductLiveTest do
       {:ok, _show_live, html} = live(conn, ~p"/products/#{product}")
 
       assert html =~ "Show Product"
-      assert html =~ product.slug
+      assert html =~ product.sku
     end
 
     test "updates product and returns to show", %{conn: conn, product: product} do
@@ -135,7 +143,7 @@ defmodule MainAppWeb.ProductLiveTest do
 
       html = render(show_live)
       assert html =~ "Product updated successfully"
-      assert html =~ "some updated slug"
+      assert html =~ "some updated sku"
     end
   end
 end

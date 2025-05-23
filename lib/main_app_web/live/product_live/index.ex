@@ -32,10 +32,17 @@ defmodule MainAppWeb.ProductLive.Index do
         on_sort={JS.push("sort-products")}
         opts={[table_attrs: [class: "table"]]}
       >
-        <:col :let={{_, product}} label="Slug" field={:slug}>{product.slug}</:col>
+        <:col :let={{_, product}} label="ID" field={:sku}>{product.id}</:col>
+        <:col :let={{_, product}} label="Sku" field={:sku}>{product.sku}</:col>
         <:col :let={{_, product}} label="Name" field={:name}>{product.name}</:col>
-        <:col :let={{_, product}} label="Description" field={:description}>
-          {product.description}
+        <:col :let={{_, product}} label="Source" field={:source}>{product.source}</:col>
+        <:col :let={{_, product}} label="ExternalId" field={:external_id}>{product.external_id}</:col>
+        <:col :let={{_, product}} label="Updated at" field={:updated_at}>
+          <span
+            id={"product-updatedat-#{product.id}"}
+            phx-hook="FormatDate"
+            data-date={product.updated_at}
+          />
         </:col>
         <:action :let={{id, product}}>
           <.link class="btn btn-ghost btn-xs" navigate={~p"/products/#{product}"}>Show</.link>
@@ -57,7 +64,7 @@ defmodule MainAppWeb.ProductLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    # Inventories.subscribe_products(socket.assigns.current_scope)
+    Inventories.subscribe_products(socket.assigns.current_scope)
 
     {
       :ok,
@@ -111,7 +118,7 @@ defmodule MainAppWeb.ProductLive.Index do
     {:ok, {products, meta}} =
       Inventories.list_products(
         socket.assigns.current_scope,
-        socket.assigns.meta
+        socket.assigns.meta.flop
       )
 
     {:noreply, socket |> assign(:meta, meta) |> stream(:products, products, reset: true)}

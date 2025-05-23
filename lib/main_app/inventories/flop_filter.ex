@@ -10,7 +10,7 @@ defmodule MainApp.Inventories.FlopFilter do
       query
       |> where(
         [u],
-        ilike(u.slug, ^pattern) or
+        ilike(u.sku, ^pattern) or
           ilike(u.name, ^pattern) or
           ilike(u.description, ^pattern)
       )

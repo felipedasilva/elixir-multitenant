@@ -21,7 +21,7 @@ defmodule MainAppWeb.ProductLive.Show do
       </.header>
 
       <.list>
-        <:item title="Slug">{@product.slug}</:item>
+        <:item title="Sku">{@product.sku}</:item>
         <:item title="Name">{@product.name}</:item>
         <:item title="Description">{@product.description}</:item>
       </.list>

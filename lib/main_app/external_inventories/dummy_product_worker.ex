@@ -19,19 +19,23 @@ defmodule MainApp.ExternalInventories.DummyProductWorker do
       :ok ->
         scope = Scope.put_application(%Scope{}, application)
 
-        case Inventories.get_product_by_slug(scope, dummy_product["sku"]) do
+        case Inventories.get_product_by_sku(scope, dummy_product["sku"]) do
           nil ->
             Inventories.create_product(scope, %{
               "name" => dummy_product["title"],
-              "slug" => dummy_product["sku"],
-              "description" => dummy_product["description"]
+              "sku" => dummy_product["sku"],
+              "description" => dummy_product["description"],
+              "external_id" => Integer.to_string(dummy_product["id"]),
+              "source" => "dummy_product"
             })
 
           product ->
             Inventories.update_product(scope, product, %{
               "name" => dummy_product["title"],
-              "slug" => dummy_product["sku"],
-              "description" => dummy_product["description"]
+              "sku" => dummy_product["sku"],
+              "description" => dummy_product["description"],
+              "external_id" => Integer.to_string(dummy_product["id"]),
+              "source" => "dummy_product"
             })
         end
 
@@ -75,7 +79,7 @@ defmodule MainApp.ExternalInventories.DummyProductWorker do
 
     product_schema = %{
       "type" => "object",
-      "required" => ["id", "sku", "brand", "price", "stock", "title", "category", "description"],
+      "required" => ["id", "sku", "price", "title", "description"],
       "properties" => %{
         "id" => %{"type" => "integer", "minimum" => 1},
         "sku" => %{"type" => "string"},

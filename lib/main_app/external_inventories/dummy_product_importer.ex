@@ -4,7 +4,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporter do
   alias MainApp.ExternalInventories.DummyProductImport
 
   def import_dummy_products(scope, %DummyProductImport{} = dummy_product_import) do
-    # true = scope.application.id == dummy_product_import.__meta__.prefix
+    true = scope.application.id == dummy_product_import.__meta__.prefix
 
     url = dummy_product_import.url
 

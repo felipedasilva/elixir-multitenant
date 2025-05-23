@@ -7,9 +7,6 @@ defmodule MainAppWeb.ApplicationLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <%= if @current_scope && @current_scope.application do %>
-        <h1>APP1: {@current_scope.application.name}</h1>
-      <% end %>
       <.header>
         Listing Applications
         <:actions>

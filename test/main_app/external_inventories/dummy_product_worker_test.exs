@@ -127,8 +127,10 @@ defmodule MainApp.ExternalInventories.DummyProductWorkerTest do
       {:ok, product} = DummyProductWorker.perform(job)
 
       refute is_nil(product.id)
-      assert "BEA-VEL-POW-003" == product.slug
+      assert "BEA-VEL-POW-003" == product.sku
       assert "Powder Canister" == product.name
+      assert "dummy_product" == product.source
+      assert "3" == product.external_id
 
       assert "The Powder Canister is a finely milled setting powder designed to set makeup and control shine. With a lightweight and translucent formula, it provides a smooth and matte finish." ==
                product.description
@@ -147,9 +149,11 @@ defmodule MainApp.ExternalInventories.DummyProductWorkerTest do
       {:ok, product_updated} = DummyProductWorker.perform(job)
 
       assert product.id == product_updated.id
-      assert product.slug == product_updated.slug
+      assert product.sku == product_updated.sku
       assert product.name == product_updated.name
       assert product.description == product_updated.description
+      assert product.external_id == product_updated.external_id
+      assert "dummy_product" == product_updated.source
     end
   end
 end

@@ -14,9 +14,11 @@ defmodule MainAppWeb.ProductLive.Form do
       </.header>
 
       <.form for={@form} id="product-form" phx-change="validate" phx-submit="save">
-        <.input field={@form[:slug]} type="text" label="Slug" />
+        <.input field={@form[:sku]} type="text" label="Sku" />
         <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:description]} type="text" label="Description" />
+        <.input field={@form[:description]} type="textarea" label="Description" />
+        <.input field={@form[:source]} type="text" label="Source" />
+        <.input field={@form[:external_id]} type="text" label="External Id" />
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Product</.button>
           <.button navigate={return_path(@current_scope, @return_to, @product)}>Cancel</.button>

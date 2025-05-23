@@ -14,7 +14,7 @@ create_tenant = fn email, application_name ->
     |> case do
       nil ->
         {:ok, application} =
-          MainApp.Accounts.create_application(user, %{
+          MainApp.Accounts.create_application(MainApp.Accounts.Scope.for_user(user), %{
             name: application_name
           })
 

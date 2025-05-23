@@ -5,8 +5,8 @@ defmodule MainApp.Inventories.Product do
 
   @derive {
     Flop.Schema,
-    filterable: [:name, :description, :slug, :search],
-    sortable: [:name, :slug],
+    filterable: [:name, :description, :sku, :search],
+    sortable: [:name, :sku],
     adapter_opts: [
       custom_fields: [
         search: [
@@ -18,16 +18,20 @@ defmodule MainApp.Inventories.Product do
   }
 
   schema "products" do
-    field :slug, :string
+    field :sku, :string
     field :name, :string
     field :description, :string
+    field :source, :string
+    field :external_id, :string
+    field :metadata, :map
+    belongs_to :dummy_product_import, MainApp.ExternalInventories.DummyProductImport
 
     timestamps()
   end
 
   def changeset(product, attrs \\ %{}) do
     product
-    |> cast(attrs, [:slug, :name, :description])
-    |> validate_required([:slug, :name])
+    |> cast(attrs, [:sku, :name, :description, :source, :external_id])
+    |> validate_required([:sku, :name])
   end
 end
