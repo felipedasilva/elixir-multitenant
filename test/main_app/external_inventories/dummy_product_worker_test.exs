@@ -111,8 +111,7 @@ defmodule MainApp.ExternalInventories.DummyProductWorkerTest do
 
       assert {:error,
               [
-                {"Required properties id, sku, brand, price, stock, title, category, description were not present.",
-                 "#"}
+                {"Required properties id, sku, price, title, description were not present.", "#"}
               ]} == DummyProductWorker.perform(job)
     end
 
