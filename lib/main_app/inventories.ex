@@ -22,10 +22,11 @@ defmodule MainApp.Inventories do
   end
 
   def create_product(%Scope{application: %{tenant: tenant}} = scope, attrs \\ %{}) do
-    with {:ok, product = %Product{}} <-
+    with {:ok, %{model: product = %Product{}}} <-
            %Product{}
+           |> PaperTrail.add_prefix(tenant)
            |> Product.changeset(attrs)
-           |> Repo.insert(prefix: tenant) do
+           |> PaperTrail.insert(prefix: tenant) do
       broadcast_product(scope, {:created, product})
       {:ok, product}
     end
@@ -57,17 +58,21 @@ defmodule MainApp.Inventories do
   end
 
   def update_product(%Scope{application: %{tenant: tenant}} = scope, product, attrs \\ %{}) do
-    with {:ok, product = %Product{}} <-
+    true = product.__meta__.prefix == tenant
+
+    with {:ok, %{model: product = %Product{}}} <-
            change_product(%Scope{application: %{tenant: tenant}}, product, attrs)
-           |> Repo.update(prefix: tenant) do
+           |> PaperTrail.update(prefix: tenant) do
       broadcast_product(scope, {:updated, product})
       {:ok, product}
     end
   end
 
   def delete_product(%Scope{application: %{tenant: tenant}} = scope, %Product{} = product) do
-    with {:ok, product = %Product{}} <-
-           Repo.delete(product, prefix: tenant) do
+    true = product.__meta__.prefix == tenant
+
+    with {:ok, %{model: product = %Product{}}} <-
+           PaperTrail.delete(product, prefix: tenant) do
       broadcast_product(scope, {:deleted, product})
       {:ok, product}
     end

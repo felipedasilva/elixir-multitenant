@@ -33,6 +33,9 @@ defmodule MainApp.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:mimic, "~> 1.12", only: :test},
+      {:mox, "~> 1.0", only: :test},
+      {:paper_trail, "~> 0.14.3"},
       {:timex, "~> 3.7"},
       {:ex_json_schema, "~> 0.10.0"},
       {:httpoison, "~> 2.0"},

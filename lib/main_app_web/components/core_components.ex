@@ -504,13 +504,13 @@ defmodule MainAppWeb.CoreComponents do
   def pagination(assigns) do
     ~H"""
     <Flop.Phoenix.pagination
-      class="pagination"
       meta={@meta}
       path={@path}
       on_paginate={@on_paginate}
       target={@target}
       aria-label={@aria_label}
       page_link_aria_label_fun={&"#{&1}ページ目へ"}
+      class="pagination"
     >
       <:previous attrs={[class: "previous"]}>
         <i class="fas fa-chevron-left" />

@@ -2,9 +2,10 @@ defmodule MainApp.ExternalInventories.DummyProductImporter do
   alias MainApp.Accounts.Scope
   alias MainApp.ExternalInventories.DummyProductWorker
   alias MainApp.ExternalInventories.DummyProductImport
+  alias MainApp.ExternalInventories.DummyProductFetchAPI
 
   def import_dummy_products(scope, %DummyProductImport{} = dummy_product_import) do
-    true = scope.application.id == dummy_product_import.__meta__.prefix
+    true = scope.application.tenant == dummy_product_import.__meta__.prefix
 
     url = dummy_product_import.url
 
@@ -20,7 +21,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporter do
   end
 
   defp fetch_dummy_products(scope, url, skip) do
-    case fetch_page(url, skip) do
+    case DummyProductFetchAPI.fetch_products(url, skip) do
       {:ok, %{"products" => products_from_api, "limit" => limit}} ->
         Enum.each(products_from_api, fn dummy_product ->
           import_dummy_product(scope, dummy_product)
@@ -37,8 +38,10 @@ defmodule MainApp.ExternalInventories.DummyProductImporter do
         {:error, "Failed to fetch products: #{inspect(reason)}"}
     end
   end
+end
 
-  defp fetch_page(url, skip) do
+defmodule MainApp.ExternalInventories.DummyProductFetchAPI do
+  def fetch_products(url, skip) do
     query_params = %{skip: skip, limit: 30}
 
     case HTTPoison.get("#{url}?#{URI.encode_query(query_params)}", [
@@ -51,7 +54,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporter do
       {:ok, %HTTPoison.Response{status_code: 429}} ->
         # Handle rate limiting by waiting and retrying
         Process.sleep(2000)
-        fetch_page(url, skip)
+        fetch_products(url, skip)
 
       {:ok, response} ->
         {:error, "Unexpected response: #{inspect(response)}"}

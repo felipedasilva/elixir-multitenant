@@ -31,5 +31,6 @@ end
 create_tenant.("myapp1@gmail.com", "myapp1")
 create_tenant.("myapp2@gmail.com", "myapp2")
 
+Mimic.copy(MainApp.ExternalInventories.DummyProductFetchAPI)
 ExUnit.start()
 Ecto.Adapters.SQL.Sandbox.mode(MainApp.Repo, :manual)

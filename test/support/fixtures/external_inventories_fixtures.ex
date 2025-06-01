@@ -10,10 +10,10 @@ defmodule MainApp.ExternalInventoriesFixtures do
   def dummy_product_import_fixture(scope, attrs \\ %{}) do
     attrs =
       Enum.into(attrs, %{
-        description: "some description",
+        description: "dummy desc",
         job_interval_in_seconds: "3600",
-        name: "some name",
-        url: "some url"
+        name: "dummy1",
+        url: "https://dummyjson.com/products"
       })
 
     {:ok, dummy_product_import} =

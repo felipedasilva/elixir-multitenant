@@ -13,6 +13,10 @@ defmodule MainApp.InventoriesFixtures do
     MainApp.Repo.get_by!(Application, %{name: "myapp1"})
   end
 
+  def get_second_application!() do
+    MainApp.Repo.get_by!(Application, %{name: "myapp2"})
+  end
+
   def get_default_tenant!() do
     MainApp.Repo.get_by!(Application, %{name: "myapp1"}).tenant
   end

@@ -74,7 +74,7 @@ defmodule MainApp.InventoriesTest do
     } do
       {:ok, product} = create_product(second_scope)
 
-      assert_raise Ecto.StaleEntryError, fn ->
+      assert_raise MatchError, fn ->
         Inventories.update_product(default_scope, product, %{
           sku: "test"
         })
@@ -97,7 +97,10 @@ defmodule MainApp.InventoriesTest do
     } do
       {:ok, product} = create_product(second_scope)
 
-      assert_raise Ecto.StaleEntryError, fn ->
+      assert product.__meta__.prefix == second_scope.application.tenant
+      refute product.__meta__.prefix == default_scope.application.tenant
+
+      assert_raise MatchError, fn ->
         Inventories.delete_product(default_scope, product)
       end
     end

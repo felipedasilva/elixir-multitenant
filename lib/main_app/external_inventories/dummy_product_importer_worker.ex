@@ -7,7 +7,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorker do
   use Oban.Worker, queue: :external_dummy_product_importer
 
   @impl Oban.Worker
-  def perform(_args) do
+  def perform(%Oban.Job{} = _args) do
     applications = Repo.all(Application)
 
     applications

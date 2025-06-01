@@ -9,6 +9,8 @@ import Config
 
 config :flop, repo: MainApp.Repo
 
+config :paper_trail, repo: MainApp.Repo
+
 config :main_app, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
