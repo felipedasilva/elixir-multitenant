@@ -16,26 +16,9 @@ services:
     networks:
       - app-network
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "pgadmin@pgadmin.com"
-      PGADMIN_DEFAULT_PASSWORD: "pgadmin"
-    ports:
-      - "16543:80"
-    depends_on:
-      - db
-    networks:
-      - app-network
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-
 networks:
   app-network:
     driver: bridge
 
 volumes:
   postgres-data:
-  pgadmin-data:
