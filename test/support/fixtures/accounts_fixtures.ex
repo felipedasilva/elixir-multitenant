@@ -85,7 +85,8 @@ defmodule MainApp.AccountsFixtures do
   end
 
   def generate_default_application_fixture(scope) do
-    {:ok, application} = Accounts.create_application(scope, %{name: "apptest"})
+    {:ok, application} =
+      Accounts.create_application(scope, %{name: "apptest", subdomain: "apptest"})
 
     application
   end

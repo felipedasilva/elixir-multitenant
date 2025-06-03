@@ -22,6 +22,7 @@ defmodule MainAppWeb.ApplicationLive.Show do
 
       <.list>
         <:item title="Name">{@application.name}</:item>
+        <:item title="Subdomain">{@application.subdomain}</:item>
         <:item title="Tenant">{@application.tenant}</:item>
       </.list>
     </Layouts.app>

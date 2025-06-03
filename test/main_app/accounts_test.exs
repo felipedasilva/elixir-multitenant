@@ -393,12 +393,46 @@ defmodule MainApp.AccountsTest do
       assert %{name: ["is invalid"]} = errors_on(changeset)
     end
 
+    test "requires subdomain to be set" do
+      attrs = %{name: "test"}
+
+      {:error, changeset} = Accounts.create_application(user_scope_fixture(), attrs)
+
+      assert %{subdomain: ["can't be blank"]} = errors_on(changeset)
+    end
+
+    test "validates subdomain to be set" do
+      subdomains = ["test1", "te12te", "1234", "/123/@%"]
+
+      subdomains
+      |> Enum.each(fn subdomain ->
+        attrs = %{name: "test", subdomain: subdomain}
+
+        {:error, changeset} = Accounts.create_application(user_scope_fixture(), attrs)
+
+        assert %{subdomain: ["must have only letters"]} = errors_on(changeset)
+      end)
+    end
+
+    test "validates subdomain uniqueness" do
+      Accounts.create_application(user_scope_fixture(), %{name: "app1", subdomain: "appone"})
+
+      attrs = %{name: "test", subdomain: "appone"}
+
+      {:error, changeset} =
+        Accounts.create_application(user_scope_fixture(), attrs)
+
+      assert %{subdomain: ["has already been taken"]} = errors_on(changeset)
+    end
+
     test "create an application" do
-      {:ok, application} = Accounts.create_application(user_scope_fixture(), %{name: "app1"})
+      {:ok, application} =
+        Accounts.create_application(user_scope_fixture(), %{name: "app1", subdomain: "appone"})
 
       refute is_nil(application.id)
       refute is_nil(application.tenant)
       assert "app1" == application.name
+      assert "appone" == application.subdomain
 
       assert_enqueued worker: MainApp.Workers.TenantMigrationWorker,
                       args: %{
@@ -416,7 +450,7 @@ defmodule MainApp.AccountsTest do
 
       assert "apptest" == default_application.name
 
-      attrs = %{name: "apptest"}
+      attrs = %{name: "apptest", subdomain: "apptesttwo"}
 
       {:ok, application} = Accounts.create_application(user_scope_fixture(), attrs)
 
@@ -458,7 +492,7 @@ defmodule MainApp.AccountsTest do
 
   describe "list_applications/1" do
     test "retrieve all applications linked to the user" do
-      Accounts.create_application(user_scope_fixture(), %{name: "notvalid"})
+      Accounts.create_application(user_scope_fixture(), %{name: "notvalid", subdomain: "notvalid"})
 
       scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
       application = generate_default_application_fixture()
@@ -490,7 +524,7 @@ defmodule MainApp.AccountsTest do
     end
 
     test "retrieve the correct application" do
-      Accounts.create_application(user_scope_fixture(), %{name: "notvalid"})
+      Accounts.create_application(user_scope_fixture(), %{name: "notvalid", subdomain: "notvalid"})
 
       scope = user_scope_fixture(user_fixture(%{email: "test@gmail.com"}))
 

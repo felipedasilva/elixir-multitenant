@@ -29,9 +29,12 @@ defmodule MainApp.Repo.Migrations.CreateUsersAuthTables do
     create table(:applications) do
       add :name, :string, null: false
       add :tenant, :string, null: false
+      add :subdomain, :string, null: false
 
       timestamps(type: :utc_datetime)
     end
+
+    create unique_index(:applications, [:subdomain])
 
     create unique_index(:applications, [:tenant])
 

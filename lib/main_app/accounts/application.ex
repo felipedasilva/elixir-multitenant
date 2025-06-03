@@ -7,9 +7,11 @@ defmodule MainApp.Accounts.Application do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
 
   schema "applications" do
     field :tenant, :string
+    field :subdomain, :string
     field :name, :string
 
     timestamps(type: :utc_datetime)
@@ -17,9 +19,31 @@ defmodule MainApp.Accounts.Application do
 
   def changeset(application, params \\ %{}) do
     application
-    |> cast(params, [:name])
-    |> validate_required([:name])
+    |> cast(params, [:name, :subdomain])
+    |> validate_required([:name, :subdomain])
+    |> validate_format(:subdomain, ~r/^[a-z]+$/, message: "must have only letters")
+    |> validate_subdomain()
+    |> unique_constraint(:subdomain)
     |> unique_tenant()
+  end
+
+  def validate_subdomain(changeset) do
+    case fetch_change(changeset, :subdomain) do
+      {:ok, subdomain} ->
+        exists? =
+          MainApp.Repo.exists?(
+            from a in MainApp.Accounts.Application, where: a.subdomain == ^subdomain
+          )
+
+        if exists? do
+          add_error(changeset, :subdomain, "has already been taken")
+        else
+          changeset
+        end
+
+      :error ->
+        changeset
+    end
   end
 
   defp unique_tenant(changeset) do

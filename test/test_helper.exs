@@ -1,4 +1,4 @@
-create_tenant = fn email, application_name ->
+create_tenant = fn email, application_name, application_domain ->
   user =
     MainApp.Accounts.get_user_by_email(email)
     |> case do
@@ -15,7 +15,8 @@ create_tenant = fn email, application_name ->
       nil ->
         {:ok, application} =
           MainApp.Accounts.create_application(MainApp.Accounts.Scope.for_user(user), %{
-            name: application_name
+            name: application_name,
+            subdomain: application_domain
           })
 
         application
@@ -28,8 +29,8 @@ create_tenant = fn email, application_name ->
   MainApp.Tenants.run_tenant_migrations_to_tenant(application.tenant)
 end
 
-create_tenant.("myapp1@gmail.com", "myapp1")
-create_tenant.("myapp2@gmail.com", "myapp2")
+create_tenant.("myapp1@gmail.com", "myapp1", "myappone")
+create_tenant.("myapp2@gmail.com", "myapp2", "myapptwo")
 
 Mimic.copy(MainApp.ExternalInventories.DummyProductFetchAPI)
 ExUnit.start()

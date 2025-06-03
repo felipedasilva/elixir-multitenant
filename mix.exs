@@ -33,6 +33,7 @@ defmodule MainApp.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:mix_test_watch, "~> 1.0", only: [:dev], runtime: false},
       {:mimic, "~> 1.12", only: :test},
       {:mox, "~> 1.0", only: :test},
       {:paper_trail, "~> 0.14.3"},

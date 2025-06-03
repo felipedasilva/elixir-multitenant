@@ -22,6 +22,7 @@ defmodule MainAppWeb.ApplicationLive.Index do
         row_click={fn {_id, application} -> JS.navigate(~p"/applications/#{application}") end}
       >
         <:col :let={{_id, application}} label="Name">{application.name}</:col>
+        <:col :let={{_id, application}} label="Subdomain">{application.subdomain}</:col>
         <:col :let={{_id, application}} label="Tenant">{application.tenant}</:col>
         <:action :let={{_id, application}}>
           <div class="sr-only">

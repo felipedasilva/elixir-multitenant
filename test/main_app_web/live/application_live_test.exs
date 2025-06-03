@@ -4,8 +4,8 @@ defmodule MainAppWeb.ApplicationLiveTest do
   import Phoenix.LiveViewTest
   import MainApp.AccountsFixtures
 
-  @create_attrs %{name: "some name"}
-  @update_attrs %{name: "some updated name"}
+  @create_attrs %{name: "some name", subdomain: "some"}
+  @update_attrs %{name: "some updated name", subdomain: "someupdated"}
   @invalid_attrs %{name: nil}
 
   setup :register_and_log_in_user

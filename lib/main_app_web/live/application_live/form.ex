@@ -15,6 +15,7 @@ defmodule MainAppWeb.ApplicationLive.Form do
 
       <.form for={@form} id="application-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
+        <.input field={@form[:subdomain]} type="text" label="Subdomain" />
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Application</.button>
           <.button navigate={return_path(@current_scope, @return_to, @application)}>Cancel</.button>
