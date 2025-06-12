@@ -33,6 +33,7 @@ defmodule MainApp.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:live_debugger, "~> 0.2.0", only: :dev},
       {:mix_test_watch, "~> 1.0", only: [:dev], runtime: false},
       {:mimic, "~> 1.12", only: :test},
