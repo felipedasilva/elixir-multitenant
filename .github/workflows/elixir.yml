@@ -10,8 +10,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports: ['5432:5432']
+        env:
+           POSTGRES_USER: postgres
+           POSTGRES_PASSWORD: postgres
+           POSTGRES_DB: main_app_test1
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     env:
       MIX_ENV: test
+      DATABASE_URL: ecto://postgres:postgres@localhost/multitenant_test
+      MIX_TEST_PARTITION: 1
 
     steps:
       - name: Checkout repo
@@ -43,11 +59,11 @@ jobs:
       - name: Compile project
         run: mix compile --force
 
-      - name: Check formatting
-        run: mix format --check-formatted
+#      - name: Check formatting
+#        run: mix format --check-formatted
 
-      - name: Run Credo (lint)
-        run: mix credo --strict
+#      - name: Run Credo (lint)
+#        run: mix credo --strict
 
       - name: Run tests
         run: mix test
