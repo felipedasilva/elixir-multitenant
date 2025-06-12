@@ -377,6 +377,10 @@ defmodule MainApp.Accounts do
     Repo.get!(Application, application_id)
   end
 
+  def get_application_by_subdomain(%Scope{}, subdomain) do
+    Repo.get_by(Application, subdomain: subdomain)
+  end
+
   def change_application(%Application{} = application, attrs \\ %{}) do
     Application.changeset(application, attrs)
   end

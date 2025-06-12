@@ -1,6 +1,5 @@
 import Config
 config :main_app, Oban, testing: :manual
-config :main_app, :dummy_product_fetch_api, MainApp.MockDummyProductFetchAPI
 
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1

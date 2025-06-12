@@ -19,6 +19,11 @@ defmodule MainAppWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :visitor do
+    plug :require_subdomain_application
+    plug :assign_visitor_application_to_scope
+  end
+
   scope "/", MainAppWeb do
     pipe_through :browser
 
@@ -99,5 +104,14 @@ defmodule MainAppWeb.Router do
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+  end
+
+  scope "/visitors", MainAppWeb do
+    pipe_through [:browser, :visitor]
+
+    live_session :require_subdomain_application,
+      on_mount: [{MainAppWeb.Application, :require_visitor_application}] do
+      live "/", VisitorsLive.Index, :index
+    end
   end
 end

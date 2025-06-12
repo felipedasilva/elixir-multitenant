@@ -33,12 +33,13 @@ defmodule MainApp.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:live_debugger, "~> 0.2.0", only: :dev},
       {:mix_test_watch, "~> 1.0", only: [:dev], runtime: false},
       {:mimic, "~> 1.12", only: :test},
       {:mox, "~> 1.0", only: :test},
       {:paper_trail, "~> 0.14.3"},
       {:timex, "~> 3.7"},
-      {:ex_json_schema, "~> 0.10.0"},
+      {:ex_json_schema, "~> 0.11.1"},
       {:httpoison, "~> 2.0"},
       {:flop, "~> 0.26.1"},
       {:flop_phoenix, "~> 0.24.1"},
