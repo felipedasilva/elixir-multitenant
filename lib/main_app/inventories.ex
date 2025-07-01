@@ -44,6 +44,10 @@ defmodule MainApp.Inventories do
     Repo.get_by(Product, [sku: sku], prefix: tenant)
   end
 
+  def get_product_changes_by_id(%Scope{application: %{tenant: tenant}}, id) do
+    PaperTrail.get_versions(Product, id, prefix: tenant)
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for changing the product.
 
@@ -60,11 +64,21 @@ defmodule MainApp.Inventories do
   def update_product(%Scope{application: %{tenant: tenant}} = scope, product, attrs \\ %{}) do
     true = product.__meta__.prefix == tenant
 
-    with {:ok, %{model: product = %Product{}}} <-
-           change_product(%Scope{application: %{tenant: tenant}}, product, attrs)
-           |> PaperTrail.update(prefix: tenant) do
-      broadcast_product(scope, {:updated, product})
-      {:ok, product}
+    changeset = change_product(%Scope{application: %{tenant: tenant}}, product, attrs)
+
+    cond do
+      not changeset.valid? ->
+        {:error, changeset}
+
+      changeset.changes == %{} ->
+        {:ok, product}
+
+      true ->
+        with {:ok, %{model: product = %Product{}}} <-
+               PaperTrail.update(changeset, prefix: tenant) do
+          broadcast_product(scope, {:updated, product})
+          {:ok, product}
+        end
     end
   end
 

@@ -1,4 +1,5 @@
 defmodule MainAppWeb.ProductLive.Show do
+  alias MainApp.Inventories.Product
   use MainAppWeb, :live_view
 
   alias MainApp.Inventories
@@ -25,6 +26,27 @@ defmodule MainAppWeb.ProductLive.Show do
         <:item title="Name">{@product.name}</:item>
         <:item title="Description">{@product.description}</:item>
       </.list>
+
+      <.table id="versions" rows={@versions}>
+        <:col :let={version} label="ID">
+          {version.id}
+        </:col>
+        <:col :let={version} label="Event">
+          {version.event}
+        </:col>
+        <:col :let={version} label="Changes">
+          {version.item_changes
+          |> Enum.map(fn {name, _} -> name end)
+          |> Enum.join(", ")}
+        </:col>
+        <:col :let={version} label="Inserted at">
+          <span
+            id={"version-insertedat-#{version.id}"}
+            phx-hook="FormatDate"
+            data-date={version.inserted_at}
+          />
+        </:col>
+      </.table>
     </Layouts.app>
     """
   end
@@ -33,13 +55,15 @@ defmodule MainAppWeb.ProductLive.Show do
   def mount(%{"id" => id}, _session, socket) do
     # Inventories.subscribe_products(socket.assigns.current_scope)
 
+    product = Inventories.get_product!(socket.assigns.current_scope, id)
+
+    versions = Inventories.get_product_changes_by_id(socket.assigns.current_scope, id)
+
     {:ok,
      socket
      |> assign(:page_title, "Show Product")
-     |> assign(
-       :product,
-       Inventories.get_product!(socket.assigns.current_scope, id)
-     )}
+     |> assign(:product, product)
+     |> assign(:versions, versions)}
   end
 
   @impl true
