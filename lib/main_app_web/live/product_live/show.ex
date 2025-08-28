@@ -1,5 +1,4 @@
 defmodule MainAppWeb.ProductLive.Show do
-  alias MainApp.Inventories.Product
   use MainAppWeb, :live_view
 
   alias MainApp.Inventories
