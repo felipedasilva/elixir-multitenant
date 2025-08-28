@@ -150,7 +150,16 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorkerTest do
         {:ok, %{"products" => [], "limit" => 10}}
       end)
 
-      job = Oban.Testing.build_job(DummyProductImporterWorker, %{}, priority: 1)
+      job =
+        Oban.Testing.build_job(
+          DummyProductImporterWorker,
+          %{
+            application_id: application.id,
+            dummy_product_import_id: dummy_product_import.id
+          },
+          priority: 1
+        )
+
       DummyProductImporterWorker.perform(job)
 
       all_enqueued_jobs = all_enqueued(worker: DummyProductWorker)
@@ -195,90 +204,209 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorkerTest do
                  false
              end)
     end
-  end
 
-  test "should create jobs for each application with dummy products" do
-    application = get_default_application!()
-    second_application = get_second_application!()
-    scope = %Scope{} |> Scope.put_application(application)
-    second_scope = %Scope{} |> Scope.put_application(second_application)
-    dummy_product_import = dummy_product_import_fixture(scope)
-    second_dummy_product_import = dummy_product_import_fixture(second_scope)
+    test "should create jobs for each application with dummy products" do
+      application = get_default_application!()
+      second_application = get_second_application!()
+      scope = %Scope{} |> Scope.put_application(application)
+      second_scope = %Scope{} |> Scope.put_application(second_application)
+      dummy_product_import = dummy_product_import_fixture(scope)
+      second_dummy_product_import = dummy_product_import_fixture(second_scope)
 
-    DummyProductFetchAPI
-    |> stub(:fetch_products, fn _x, _y -> :stub end)
-    |> expect(:fetch_products, fn url, skip ->
-      assert url == dummy_product_import.url
-      assert 0 == skip
+      DummyProductFetchAPI
+      |> stub(:fetch_products, fn _x, _y -> :stub end)
+      |> expect(:fetch_products, fn url, skip ->
+        assert url == dummy_product_import.url
+        assert 0 == skip
 
-      {:ok, %{"products" => [@product_api_1], "limit" => 10}}
-    end)
-    |> expect(:fetch_products, fn url, skip ->
-      assert url == dummy_product_import.url
-      assert 10 == skip
+        {:ok, %{"products" => [@product_api_1], "limit" => 10}}
+      end)
+      |> expect(:fetch_products, fn url, skip ->
+        assert url == dummy_product_import.url
+        assert 10 == skip
 
-      {:ok, %{"products" => [], "limit" => 10}}
-    end)
-    |> expect(:fetch_products, fn url, skip ->
-      assert url == second_dummy_product_import.url
-      assert 0 == skip
+        {:ok, %{"products" => [], "limit" => 10}}
+      end)
+      |> expect(:fetch_products, fn url, skip ->
+        assert url == second_dummy_product_import.url
+        assert 0 == skip
 
-      {:ok, %{"products" => [@product_api_2], "limit" => 10}}
-    end)
-    |> expect(:fetch_products, fn url, skip ->
-      assert url == second_dummy_product_import.url
-      assert 10 == skip
+        {:ok, %{"products" => [@product_api_2], "limit" => 10}}
+      end)
+      |> expect(:fetch_products, fn url, skip ->
+        assert url == second_dummy_product_import.url
+        assert 10 == skip
 
-      {:ok, %{"products" => [], "limit" => 10}}
-    end)
+        {:ok, %{"products" => [], "limit" => 10}}
+      end)
 
-    job = Oban.Testing.build_job(DummyProductImporterWorker, %{}, priority: 1)
-    DummyProductImporterWorker.perform(job)
+      job =
+        Oban.Testing.build_job(
+          DummyProductImporterWorker,
+          %{
+            "application_id" => application.id,
+            "dummy_product_import_id" => dummy_product_import.id
+          },
+          priority: 1
+        )
 
-    all_enqueued_jobs = all_enqueued(worker: DummyProductWorker)
+      DummyProductImporterWorker.perform(job)
 
-    application_id = application.id
-    application_name = application.name
-    application_tenant = application.tenant
+      second_job =
+        Oban.Testing.build_job(
+          DummyProductImporterWorker,
+          %{
+            "application_id" => second_application.id,
+            "dummy_product_import_id" => second_dummy_product_import.id
+          },
+          priority: 1
+        )
 
-    second_application_id = second_application.id
-    second_application_name = second_application.name
-    second_application_tenant = second_application.tenant
+      DummyProductImporterWorker.perform(second_job)
 
-    assert Enum.any?(all_enqueued_jobs, fn
-             %{
-               queue: "external_dummy_product",
-               args: %{
-                 "application" => %{
-                   "id" => ^application_id,
-                   "name" => ^application_name,
-                   "tenant" => ^application_tenant
-                 },
-                 "dummy_product" => @product_api_1
-               }
-             } ->
-               true
+      all_enqueued_jobs = all_enqueued(worker: DummyProductWorker)
 
-             _ ->
-               false
-           end)
+      application_id = application.id
+      application_name = application.name
+      application_tenant = application.tenant
 
-    assert Enum.any?(all_enqueued_jobs, fn
-             %{
-               queue: "external_dummy_product",
-               args: %{
-                 "application" => %{
-                   "id" => ^second_application_id,
-                   "name" => ^second_application_name,
-                   "tenant" => ^second_application_tenant
-                 },
-                 "dummy_product" => @product_api_2
-               }
-             } ->
-               true
+      second_application_id = second_application.id
+      second_application_name = second_application.name
+      second_application_tenant = second_application.tenant
 
-             _ ->
-               false
-           end)
+      assert Enum.any?(all_enqueued_jobs, fn
+               %{
+                 queue: "external_dummy_product",
+                 args: %{
+                   "application" => %{
+                     "id" => ^application_id,
+                     "name" => ^application_name,
+                     "tenant" => ^application_tenant
+                   },
+                   "dummy_product" => @product_api_1
+                 }
+               } ->
+                 true
+
+               _ ->
+                 false
+             end)
+
+      assert Enum.any?(all_enqueued_jobs, fn
+               %{
+                 queue: "external_dummy_product",
+                 args: %{
+                   "application" => %{
+                     "id" => ^second_application_id,
+                     "name" => ^second_application_name,
+                     "tenant" => ^second_application_tenant
+                   },
+                   "dummy_product" => @product_api_2
+                 }
+               } ->
+                 true
+
+               _ ->
+                 false
+             end)
+    end
+
+    test "should create a new job when the job is finished" do
+      application = get_default_application!()
+      scope = %Scope{} |> Scope.put_application(application)
+      dummy_product_import = dummy_product_import_fixture(scope)
+
+      DummyProductFetchAPI
+      |> stub(:fetch_products, fn _x, _y -> :stub end)
+      |> expect(:fetch_products, fn url, skip ->
+        assert url == dummy_product_import.url
+        assert 0 == skip
+
+        {:ok, %{"products" => [@product_api_1, @product_api_2], "limit" => 10}}
+      end)
+      |> expect(:fetch_products, fn url, skip ->
+        assert url == dummy_product_import.url
+        assert 10 == skip
+
+        {:ok, %{"products" => [], "limit" => 10}}
+      end)
+
+      job =
+        Oban.Testing.build_job(
+          DummyProductImporterWorker,
+          %{
+            application_id: application.id,
+            dummy_product_import_id: dummy_product_import.id
+          },
+          priority: 1
+        )
+
+      DummyProductImporterWorker.perform(job)
+
+      all_enqueued_jobs = all_enqueued(worker: DummyProductImporterWorker)
+
+      application_id = application.id
+      dummy_product_import_id = dummy_product_import.id
+
+      assert Enum.any?(all_enqueued_jobs, fn
+               %{
+                 queue: "external_dummy_product_importer",
+                 args: %{
+                   "application_id" => ^application_id,
+                   "dummy_product_import_id" => ^dummy_product_import_id
+                 }
+               } ->
+                 true
+
+               _ ->
+                 false
+             end)
+    end
+
+    test "should not create a new job when the job is failed" do
+      application = get_default_application!()
+      scope = %Scope{} |> Scope.put_application(application)
+      dummy_product_import = dummy_product_import_fixture(scope)
+
+      DummyProductFetchAPI
+      |> stub(:fetch_products, fn _x, _y -> :stub end)
+      |> expect(:fetch_products, fn _, _ ->
+        {:error, "api error"}
+      end)
+
+      job =
+        Oban.Testing.build_job(
+          DummyProductImporterWorker,
+          %{
+            application_id: application.id,
+            dummy_product_import_id: dummy_product_import.id
+          },
+          priority: 1
+        )
+
+      {:error, error} = DummyProductImporterWorker.perform(job)
+
+      assert error == "Failed to fetch products: \"api error\""
+
+      all_enqueued_jobs = all_enqueued(worker: DummyProductImporterWorker)
+
+      application_id = application.id
+      dummy_product_import_id = dummy_product_import.id
+
+      assert false ==
+               Enum.any?(all_enqueued_jobs, fn
+                 %{
+                   queue: "external_dummy_product_importer",
+                   args: %{
+                     "application_id" => ^application_id,
+                     "dummy_product_import_id" => ^dummy_product_import_id
+                   }
+                 } ->
+                   true
+
+                 _ ->
+                   false
+               end)
+    end
   end
 end

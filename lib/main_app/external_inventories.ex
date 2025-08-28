@@ -68,6 +68,24 @@ defmodule MainApp.ExternalInventories do
   end
 
   @doc """
+  Gets a single dummy_product_import.
+
+  Returns `nil` if the Dummy product import does not exist.
+
+  ## Examples
+
+      iex> get_dummy_product_import(123)
+      %DummyProductImport{}
+
+      iex> get_dummy_product_import(456)
+      nil
+
+  """
+  def get_dummy_product_import(%Scope{} = scope, id) do
+    Repo.get(DummyProductImport, id, prefix: scope.application.tenant)
+  end
+
+  @doc """
   Creates a dummy_product_import.
 
   ## Examples
