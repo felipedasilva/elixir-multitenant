@@ -4,6 +4,7 @@ defmodule MainApp.ExternalInventories do
   """
 
   import Ecto.Query, warn: false
+  alias MainApp.ExternalInventories.DummyProductImporterWorker
   alias MainApp.Repo
 
   alias MainApp.ExternalInventories.DummyProductImport
@@ -98,10 +99,20 @@ defmodule MainApp.ExternalInventories do
 
   """
   def create_dummy_product_import(%Scope{} = scope, attrs \\ %{}) do
-    with {:ok, dummy_product_import = %DummyProductImport{}} <-
-           %DummyProductImport{}
-           |> DummyProductImport.changeset(attrs, scope)
-           |> Repo.insert(prefix: scope.application.tenant) do
+    with {:ok, %{dummy_product_import: dummy_product_import, oban_job: _}} <-
+           Ecto.Multi.new()
+           |> Ecto.Multi.insert(
+             :dummy_product_import,
+             DummyProductImport.changeset(%DummyProductImport{}, attrs, scope),
+             prefix: scope.application.tenant
+           )
+           |> Ecto.Multi.insert(:oban_job, fn %{dummy_product_import: dummy_product_import} ->
+             DummyProductImporterWorker.create_oban_job(
+               scope.application,
+               dummy_product_import
+             )
+           end)
+           |> Repo.transaction() do
       broadcast(scope, {:created, dummy_product_import})
       {:ok, dummy_product_import}
     end

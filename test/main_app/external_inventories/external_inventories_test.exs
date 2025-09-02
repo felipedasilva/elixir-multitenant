@@ -1,4 +1,5 @@
 defmodule MainApp.ExternalInventoriesTest do
+  alias MainApp.ExternalInventories.DummyProductImporterWorker
   use MainApp.DataCase
 
   alias MainApp.ExternalInventories
@@ -63,10 +64,58 @@ defmodule MainApp.ExternalInventoriesTest do
       assert dummy_product_import.job_interval_in_seconds == "3600"
     end
 
+    test "create_dummy_product_import/2 with valid data creates a oban job" do
+      valid_attrs = %{
+        name: "some name",
+        description: "some description",
+        url: "some url",
+        job_interval_in_seconds: "3600"
+      }
+
+      scope = user_scope_fixture() |> default_application_scope_fixture()
+
+      assert {:ok, %DummyProductImport{} = dummy_product_import} =
+               ExternalInventories.create_dummy_product_import(scope, valid_attrs)
+
+      all_enqueued_jobs = all_enqueued(worker: DummyProductImporterWorker)
+
+      application_id = scope.application.id
+      dummy_product_import_id = dummy_product_import.id
+
+      assert Enum.any?(all_enqueued_jobs, fn job ->
+               %{
+                 queue: "external_dummy_product_importer",
+                 args: %{
+                   "application_id" => ^application_id,
+                   "dummy_product_import_id" => ^dummy_product_import_id
+                 }
+               } = job
+
+               DateTime.diff(
+                 job.scheduled_at,
+                 DateTime.add(dummy_product_import.inserted_at, 3600, :second),
+                 :second
+               ) == 0
+             end)
+    end
+
     test "create_dummy_product_import/2 with invalid data returns error changeset" do
       scope = user_scope_fixture() |> default_application_scope_fixture()
 
-      assert {:error, %Ecto.Changeset{}} =
+      assert {:error, :dummy_product_import,
+              %Ecto.Changeset{
+                action: :insert,
+                changes: %{},
+                data: %DummyProductImport{},
+                errors: [
+                  name: {"can't be blank", [validation: :required]},
+                  url: {"can't be blank", [validation: :required]},
+                  description: {"can't be blank", [validation: :required]},
+                  job_interval_in_seconds: {"can't be blank", [validation: :required]}
+                ],
+                valid?: false
+              },
+              %{}} =
                ExternalInventories.create_dummy_product_import(scope, @invalid_attrs)
     end
 

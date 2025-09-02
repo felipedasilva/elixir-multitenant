@@ -22,7 +22,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorker do
            ) do
       case import_dummy_products(application, dummy_product_import) do
         :ok ->
-          schedule_next_job(application, dummy_product_import)
+          schedule_oban_job(application, dummy_product_import)
           :ok
 
         {:error, error} ->
@@ -42,7 +42,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorker do
     DummyProductImporter.import_dummy_products(scope, dummy_product_import)
   end
 
-  def schedule_next_job(
+  def create_oban_job(
         %Application{} = application,
         %DummyProductImport{} = dummy_product_import
       ) do
@@ -53,6 +53,13 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorker do
       },
       schedule_in: 3600
     )
+  end
+
+  def schedule_oban_job(
+        %Application{} = application,
+        %DummyProductImport{} = dummy_product_import
+      ) do
+    create_oban_job(application, dummy_product_import)
     |> Oban.insert!()
   end
 end

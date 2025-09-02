@@ -3,6 +3,8 @@ defmodule MainApp.ExternalInventoriesFixtures do
   This module defines test helpers for creating
   entities via the `MainApp.ExternalInventories` context.
   """
+  alias MainApp.Repo
+  alias MainApp.ExternalInventories.DummyProductImport
 
   @doc """
   Generate a dummy_product_import.
@@ -17,7 +19,9 @@ defmodule MainApp.ExternalInventoriesFixtures do
       })
 
     {:ok, dummy_product_import} =
-      MainApp.ExternalInventories.create_dummy_product_import(scope, attrs)
+      %DummyProductImport{}
+      |> DummyProductImport.changeset(attrs, scope)
+      |> Repo.insert(prefix: scope.application.tenant)
 
     dummy_product_import
   end
