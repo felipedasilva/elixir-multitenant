@@ -51,7 +51,7 @@ defmodule MainApp.ExternalInventories.DummyProductImporterWorker do
         application_id: application.id,
         dummy_product_import_id: dummy_product_import.id
       },
-      schedule_in: 3600
+      schedule_in: dummy_product_import.job_interval_in_seconds |> String.to_integer()
     )
   end
 

@@ -92,7 +92,7 @@ defmodule MainApp.Inventories do
     end
   end
 
-  @spec list_products(String, map) ::
+  @spec list_products(map, map) ::
           {:ok, {[Product], Flop.Meta.t()}} | {:error, Flop.Meta.t()}
   def list_products(%Scope{application: %{tenant: tenant}}, params \\ %{}) do
     params =
